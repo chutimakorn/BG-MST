@@ -1,12 +1,12 @@
-# Sales Management System
+# BG-MST - Sales Management System
 
 ระบบจัดการข้อมูลการขายรถพร้อม Dashboard และ Report
 
 ## Tech Stack
 - Frontend: Next.js 14 (App Router), TypeScript, Tailwind CSS, Shadcn/ui
 - Backend: NestJS, TypeORM
-- Database: SQL Server (dev), PostgreSQL (production)
-- Deployment: Vercel
+- Database: SQLite (dev), SQL Server/PostgreSQL (production)
+- UI: NextAdmin-style dashboard with dark mode support
 
 ## Getting Started
 
@@ -23,13 +23,18 @@ npm run start:dev
 ```bash
 cd frontend
 npm install
+cp .env.local.example .env.local
 npm run dev
 ```
 
 ## Features
 - ระบบ Login และ Authentication
-- จัดการข้อมูลใบเสนอราคา (เพิ่ม/แก้ไข)
+- NextAdmin-style Dashboard พร้อม Dark/Light Mode
+- Sidebar และ Header แบบ responsive
+- จัดการข้อมูลใบเสนอราคา (เพิ่ม/แก้ไข/ลบ)
+- จัดการ Job Orders
+- Import ข้อมูลจาก Excel และ PDF
 - จัดการ Master Data ทั้งหมด
-- Dashboard แสดงสถิติการขาย
+- Dashboard แสดงสถิติการขาย พร้อม Charts
 - Report แยกตามเลขที่ใบเสนอราคาและผู้ขาย
 - Filter และ Export ข้อมูล
