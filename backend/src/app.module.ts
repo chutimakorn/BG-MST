@@ -8,6 +8,7 @@ import { MasterDataModule } from './master-data/master-data.module';
 import { ReportsModule } from './reports/reports.module';
 import { ImportModule } from './import/import.module';
 import { JobOrdersModule } from './job-orders/job-orders.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { JobOrdersModule } from './job-orders/job-orders.module';
     ReportsModule,
     ImportModule,
     JobOrdersModule,
+    SettingsModule,
   ],
 })
 export class AppModule {}

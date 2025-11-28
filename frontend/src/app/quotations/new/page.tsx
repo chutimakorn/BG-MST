@@ -84,12 +84,31 @@ export default function NewQuotationPage() {
     try {
       const totals = calculateTotals(formData)
       const submitData = {
-        ...formData,
-        ...totals,
+        requestDate: formData.requestDate,
+        submissionDate: formData.submissionDate,
+        quotationNumber: formData.quotationNumber,
+        customerGroup: formData.customerGroup,
+        saleMember: formData.saleMemberId || null,
+        customerName: formData.customerName,
+        customerCode: formData.customerCode,
+        car: formData.carId || null,
+        additionalOptions: formData.additionalOptions,
         quantity: parseInt(formData.quantity as any),
         pricePerUnitWithVat: parseFloat(formData.pricePerUnitWithVat as any),
+        province: formData.provinceId || null,
         transportTrips: parseInt(formData.transportTrips as any),
         pricePerTrip: parseFloat(formData.pricePerTrip as any),
+        paymentTerms: formData.paymentTerms,
+        contactName: formData.contactName,
+        contactPhone: formData.contactPhone,
+        contactEmail: formData.contactEmail,
+        stockStatus: formData.stockStatus,
+        customerNotification: formData.customerNotification,
+        preDeliveryInspection: formData.preDeliveryInspection,
+        serialCode: formData.serialCode,
+        status: formData.status,
+        postDeliveryNote: formData.postDeliveryNote,
+        ...totals,
       }
 
       await api.post('/quotations', submitData)

@@ -10,6 +10,7 @@ import {
   Database,
   Upload,
   FileUp,
+  Settings,
   LogOut,
   ChevronDown,
   ChevronLeft,
@@ -198,6 +199,20 @@ export default function Sidebar() {
             )}
 
             <ul className="mb-6 flex flex-col gap-1.5">
+              <li>
+                <Link
+                  href="/settings"
+                  className={`group relative flex items-center gap-2.5 rounded-sm px-4 py-2 font-medium duration-300 ease-in-out ${
+                    pathname === '/settings'
+                      ? 'bg-primary bg-opacity-10 text-primary'
+                      : 'text-body hover:bg-primary hover:bg-opacity-10 hover:text-primary dark:text-bodydark1 dark:hover:bg-primary dark:hover:bg-opacity-10 dark:hover:text-primary'
+                  }`}
+                  title={!sidebarOpen ? 'ตั้งค่า' : undefined}
+                >
+                  <Settings className="h-5 w-5 flex-shrink-0" />
+                  {sidebarOpen && 'ตั้งค่า'}
+                </Link>
+              </li>
               <li>
                 <button
                   onClick={handleLogout}
