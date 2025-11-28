@@ -2,10 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import api from '@/lib/api'
-import { formatCurrency } from '@/lib/utils'
-import Link from 'next/link'
 import { 
   TrendingUp,
   Users,
@@ -13,7 +10,6 @@ import {
   ShoppingCart,
   ArrowUpRight,
   ArrowDownRight,
-  Eye,
   Activity
 } from 'lucide-react'
 import { 
@@ -31,7 +27,6 @@ import {
   Legend
 } from 'recharts'
 
-// Sample data for charts
 const salesData = [
   { name: 'ม.ค.', sales: 4000, orders: 2400 },
   { name: 'ก.พ.', sales: 3000, orders: 1398 },
@@ -89,242 +84,264 @@ export default function DashboardPage() {
       setStats(response.data)
     } catch (error: any) {
       console.error('Failed to load stats', error)
-      if (error.response?.status !== 401) {
-        console.log('Error loading stats:', error.message)
-      }
     }
   }
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">กำลังโหลด...</p>
+          <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
+          <p className="mt-4 text-black dark:text-white">กำลังโหลด...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">ยินดีต้อนรับกลับมา, {user.fullName} 👋</p>
+    <>
+      {/* Breadcrumb */}
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-title-md2 font-semibold text-black dark:text-white">
+          Dashboard
+        </h2>
+        <nav>
+          <p className="font-medium">ยินดีต้อนรับกลับมา, {user.fullName} 👋</p>
+        </nav>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">ยอดขายรวม</p>
-                <p className="text-2xl font-bold">฿3.456M</p>
-                <div className="flex items-center text-xs text-green-600">
-                  <ArrowUpRight className="mr-1 h-3 w-3" />
-                  <span>0.43%</span>
-                </div>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
-                <DollarSign className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
+        {/* Card Item */}
+        <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
+            <DollarSign className="h-5 w-5 text-primary dark:text-white" />
+          </div>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">ใบเสนอราคา</p>
-                <p className="text-2xl font-bold">$45.2K</p>
-                <div className="flex items-center text-xs text-green-600">
-                  <ArrowUpRight className="mr-1 h-3 w-3" />
-                  <span>4.35%</span>
-                </div>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
-                <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
+          <div className="mt-4 flex items-end justify-between">
+            <div>
+              <h4 className="text-title-md font-bold text-black dark:text-white">
+                ฿3.456M
+              </h4>
+              <span className="text-sm font-medium">ยอดขายรวม</span>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Job Orders</p>
-                <p className="text-2xl font-bold">2.450</p>
-                <div className="flex items-center text-xs text-green-600">
-                  <ArrowUpRight className="mr-1 h-3 w-3" />
-                  <span>2.59%</span>
-                </div>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900">
-                <ShoppingCart className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            <span className="flex items-center gap-1 text-sm font-medium text-meta-3">
+              0.43%
+              <ArrowUpRight className="h-4 w-4" />
+            </span>
+          </div>
+        </div>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">ลูกค้าทั้งหมด</p>
-                <p className="text-2xl font-bold">3.456</p>
-                <div className="flex items-center text-xs text-red-600">
-                  <ArrowDownRight className="mr-1 h-3 w-3" />
-                  <span>0.95%</span>
-                </div>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900">
-                <Users className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-              </div>
+        {/* Card Item */}
+        <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
+            <TrendingUp className="h-5 w-5 text-primary dark:text-white" />
+          </div>
+
+          <div className="mt-4 flex items-end justify-between">
+            <div>
+              <h4 className="text-title-md font-bold text-black dark:text-white">
+                $45.2K
+              </h4>
+              <span className="text-sm font-medium">ใบเสนอราคา</span>
             </div>
-          </CardContent>
-        </Card>
+
+            <span className="flex items-center gap-1 text-sm font-medium text-meta-3">
+              4.35%
+              <ArrowUpRight className="h-4 w-4" />
+            </span>
+          </div>
+        </div>
+
+        {/* Card Item */}
+        <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
+            <ShoppingCart className="h-5 w-5 text-primary dark:text-white" />
+          </div>
+
+          <div className="mt-4 flex items-end justify-between">
+            <div>
+              <h4 className="text-title-md font-bold text-black dark:text-white">
+                2.450
+              </h4>
+              <span className="text-sm font-medium">Job Orders</span>
+            </div>
+
+            <span className="flex items-center gap-1 text-sm font-medium text-meta-3">
+              2.59%
+              <ArrowUpRight className="h-4 w-4" />
+            </span>
+          </div>
+        </div>
+
+        {/* Card Item */}
+        <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
+            <Users className="h-5 w-5 text-primary dark:text-white" />
+          </div>
+
+          <div className="mt-4 flex items-end justify-between">
+            <div>
+              <h4 className="text-title-md font-bold text-black dark:text-white">
+                3.456
+              </h4>
+              <span className="text-sm font-medium">ลูกค้าทั้งหมด</span>
+            </div>
+
+            <span className="flex items-center gap-1 text-sm font-medium text-meta-1">
+              0.95%
+              <ArrowDownRight className="h-4 w-4" />
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Charts Row */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
         {/* Sales Overview */}
-        <Card>
-          <CardHeader>
-            <CardTitle>ภาพรวมยอดขาย</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+        <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-8">
+          <div className="mb-3 justify-between gap-4 sm:flex">
+            <div>
+              <h4 className="text-xl font-semibold text-black dark:text-white">
+                ภาพรวมยอดขาย
+              </h4>
+            </div>
+          </div>
+          <div>
+            <ResponsiveContainer width="100%" height={350}>
               <AreaChart data={salesData}>
                 <defs>
                   <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#3C50E0" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#3C50E0" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="name" className="text-xs" />
-                <YAxis className="text-xs" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                <XAxis dataKey="name" stroke="#64748B" />
+                <YAxis stroke="#64748B" />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
+                    backgroundColor: '#fff',
+                    border: '1px solid #E2E8F0',
                     borderRadius: '8px'
                   }}
                 />
                 <Area 
                   type="monotone" 
                   dataKey="sales" 
-                  stroke="#3b82f6" 
+                  stroke="#3C50E0" 
+                  strokeWidth={2}
                   fillOpacity={1} 
                   fill="url(#colorSales)" 
                 />
               </AreaChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Revenue Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>รายได้และกำไร</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+        <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-4">
+          <div className="mb-3">
+            <h4 className="text-xl font-semibold text-black dark:text-white">
+              รายได้และกำไร
+            </h4>
+          </div>
+          <div>
+            <ResponsiveContainer width="100%" height={350}>
               <BarChart data={revenueData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="month" className="text-xs" />
-                <YAxis className="text-xs" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                <XAxis dataKey="month" stroke="#64748B" />
+                <YAxis stroke="#64748B" />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
+                    backgroundColor: '#fff',
+                    border: '1px solid #E2E8F0',
                     borderRadius: '8px'
                   }}
                 />
                 <Legend />
-                <Bar dataKey="revenue" fill="#3b82f6" radius={[8, 8, 0, 0]} name="รายได้" />
-                <Bar dataKey="profit" fill="#10b981" radius={[8, 8, 0, 0]} name="กำไร" />
+                <Bar dataKey="revenue" fill="#3C50E0" radius={[4, 4, 0, 0]} name="รายได้" />
+                <Bar dataKey="profit" fill="#10B981" radius={[4, 4, 0, 0]} name="กำไร" />
               </BarChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Bottom Row */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
         {/* Visitors Chart */}
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>ผู้เข้าชมรายสัปดาห์</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
+        <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-8">
+          <div className="mb-3">
+            <h4 className="text-xl font-semibold text-black dark:text-white">
+              ผู้เข้าชมรายสัปดาห์
+            </h4>
+          </div>
+          <div>
+            <ResponsiveContainer width="100%" height={300}>
               <LineChart data={visitorData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="day" className="text-xs" />
-                <YAxis className="text-xs" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                <XAxis dataKey="day" stroke="#64748B" />
+                <YAxis stroke="#64748B" />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
+                    backgroundColor: '#fff',
+                    border: '1px solid #E2E8F0',
                     borderRadius: '8px'
                   }}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="visitors" 
-                  stroke="#8b5cf6" 
+                  stroke="#3C50E0" 
                   strokeWidth={2}
-                  dot={{ fill: '#8b5cf6', r: 4 }}
+                  dot={{ fill: '#3C50E0', r: 4 }}
                   activeDot={{ r: 6 }}
                 />
               </LineChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle>กิจกรรมล่าสุด</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start space-x-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
-                  <Activity className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium">ใบเสนอราคาใหม่</p>
-                  <p className="text-xs text-muted-foreground">5 นาทีที่แล้ว</p>
-                </div>
+        <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-4">
+          <div className="mb-6">
+            <h4 className="text-xl font-semibold text-black dark:text-white">
+              กิจกรรมล่าสุด
+            </h4>
+          </div>
+          <div className="flex flex-col gap-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
+                <Activity className="h-5 w-5 text-primary dark:text-white" />
               </div>
-              <div className="flex items-start space-x-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
-                  <Activity className="h-4 w-4 text-green-600 dark:text-green-400" />
-                </div>
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium">Job Order อัพเดท</p>
-                  <p className="text-xs text-muted-foreground">15 นาทีที่แล้ว</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900">
-                  <Activity className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                </div>
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium">รายงานสร้างเสร็จ</p>
-                  <p className="text-xs text-muted-foreground">1 ชั่วโมงที่แล้ว</p>
-                </div>
+              <div className="flex-1">
+                <p className="font-medium text-black dark:text-white">ใบเสนอราคาใหม่</p>
+                <p className="text-sm text-body">5 นาทีที่แล้ว</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
+                <Activity className="h-5 w-5 text-meta-3 dark:text-white" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-black dark:text-white">Job Order อัพเดท</p>
+                <p className="text-sm text-body">15 นาทีที่แล้ว</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
+                <Activity className="h-5 w-5 text-meta-5 dark:text-white" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-black dark:text-white">รายงานสร้างเสร็จ</p>
+                <p className="text-sm text-body">1 ชั่วโมงที่แล้ว</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   )
 }

@@ -10,13 +10,12 @@ import {
   Database,
   Upload,
   FileUp,
-  Settings,
   LogOut,
+  ChevronDown,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react'
 import { useState } from 'react'
-import { cn } from '@/lib/utils'
 
 const menuItems = [
   {
@@ -51,14 +50,27 @@ const menuItems = [
   },
   {
     title: 'Master Data',
-    href: '/master-data',
+    href: '/master-data/cars',
     icon: Database,
+    submenu: [
+      { title: 'รุ่นรถ', href: '/master-data/cars' },
+      { title: 'ผู้ขาย', href: '/master-data/sale-members' },
+      { title: 'Category รถ', href: '/master-data/category-cars' },
+      { title: 'สี Body', href: '/master-data/body-colors' },
+      { title: 'สี Seat', href: '/master-data/seat-colors' },
+      { title: 'สี Canopy', href: '/master-data/canopy-colors' },
+      { title: 'จังหวัด', href: '/master-data/provinces' },
+      { title: 'สถานะการขาย', href: '/master-data/status-sales' },
+      { title: 'สถานะเอกสาร', href: '/master-data/status-job-documents' },
+      { title: 'สถานะงาน', href: '/master-data/status-jobs' },
+    ],
   },
 ]
 
 export default function Sidebar() {
   const pathname = usePathname()
-  const [collapsed, setCollapsed] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null)
 
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -66,74 +78,140 @@ export default function Sidebar() {
     window.location.href = '/login'
   }
 
+  const toggleSubmenu = (title: string) => {
+    setOpenSubmenu(openSubmenu === title ? null : title)
+  }
+
   return (
     <aside
-      className={cn(
-        'fixed left-0 top-0 z-40 h-screen transition-all duration-300 border-r border-stroke bg-white dark:bg-boxdark dark:border-strokedark',
-        collapsed ? 'w-16' : 'w-64'
-      )}
+      className={`flex h-screen flex-col overflow-y-hidden bg-white border-r border-stroke transition-all duration-300 dark:border-strokedark dark:bg-boxdark ${
+        sidebarOpen ? 'w-72.5' : 'w-20'
+      }`}
     >
-      <div className="flex h-full flex-col">
-        {/* Logo */}
-        <div className="flex h-16 items-center justify-between border-b border-stroke dark:border-strokedark px-4">
-          {!collapsed && (
-            <Link href="/dashboard" className="flex items-center space-x-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white">
-                <LayoutDashboard className="h-5 w-5" />
-              </div>
-              <span className="text-lg font-bold text-black dark:text-white">BG-MST</span>
-            </Link>
+      {/* SIDEBAR HEADER */}
+      <div className="flex items-center justify-between gap-2 border-b border-stroke px-6 py-5.5 dark:border-strokedark lg:py-6.5">
+        {sidebarOpen && (
+          <Link href="/dashboard">
+            <h1 className="text-2xl font-bold text-black dark:text-white">BG-MST</h1>
+          </Link>
+        )}
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="rounded-lg p-2 hover:bg-primary hover:bg-opacity-10 hover:text-primary"
+        >
+          {sidebarOpen ? (
+            <ChevronLeft className="h-5 w-5" />
+          ) : (
+            <ChevronRight className="h-5 w-5" />
           )}
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-meta-4"
-          >
-            {collapsed ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <ChevronLeft className="h-4 w-4" />
-            )}
-          </button>
-        </div>
+        </button>
+      </div>
+      {/* SIDEBAR HEADER */}
 
-        {/* Navigation */}
-        <nav className="flex-1 space-y-1 overflow-y-auto p-4">
-          {menuItems.map((item) => {
-            const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  'flex items-center space-x-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                  isActive
-                    ? 'bg-primary text-white dark:bg-meta-4'
-                    : 'text-bodydark1 hover:bg-gray-100 dark:hover:bg-meta-4',
-                  collapsed && 'justify-center'
-                )}
-                title={collapsed ? item.title : undefined}
-              >
-                <item.icon className="h-5 w-5 flex-shrink-0" />
-                {!collapsed && <span>{item.title}</span>}
-              </Link>
-            )
-          })}
+      <div className="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
+        {/* Sidebar Menu */}
+        <nav className="mt-5 px-4 py-4 lg:mt-9 lg:px-6">
+          {/* Menu Group */}
+          <div>
+            {sidebarOpen && (
+              <h3 className="mb-4 ml-4 text-sm font-semibold text-body dark:text-bodydark2">MENU</h3>
+            )}
+
+            <ul className="mb-6 flex flex-col gap-1.5">
+              {menuItems.map((item) => {
+                const hasSubmenu = item.submenu && item.submenu.length > 0
+                const isActive = item.href ? (pathname === item.href || pathname?.startsWith(item.href + '/')) : false
+                const isSubmenuActive = hasSubmenu && item.submenu?.some(sub => pathname === sub.href || pathname?.startsWith(sub.href + '/'))
+                const isSubmenuOpen = openSubmenu === item.title || isSubmenuActive
+
+                return (
+                  <li key={item.title}>
+                    {hasSubmenu ? (
+                      <>
+                        <button
+                          onClick={() => toggleSubmenu(item.title)}
+                          className={`group relative flex w-full items-center justify-between gap-2.5 rounded-sm px-4 py-2 font-medium duration-300 ease-in-out ${
+                            isSubmenuActive
+                              ? 'bg-primary bg-opacity-10 text-primary'
+                              : 'text-body hover:bg-primary hover:bg-opacity-10 hover:text-primary dark:text-bodydark1 dark:hover:bg-primary dark:hover:bg-opacity-10 dark:hover:text-primary'
+                          }`}
+                          title={!sidebarOpen ? item.title : undefined}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <item.icon className="h-5 w-5 flex-shrink-0" />
+                            {sidebarOpen && item.title}
+                          </div>
+                          {sidebarOpen && (
+                            <ChevronDown
+                              className={`h-4 w-4 transition-transform ${
+                                isSubmenuOpen ? 'rotate-180' : ''
+                              }`}
+                            />
+                          )}
+                        </button>
+                        {isSubmenuOpen && sidebarOpen && (
+                          <ul className="mt-1 flex flex-col gap-1 pl-6">
+                            {item.submenu?.map((subItem) => {
+                              const isSubActive = pathname === subItem.href || pathname?.startsWith(subItem.href + '/')
+                              return (
+                                <li key={subItem.href}>
+                                  <Link
+                                    href={subItem.href}
+                                    className={`group relative flex items-center gap-2.5 rounded-sm px-4 py-2 font-medium duration-300 ease-in-out ${
+                                      isSubActive
+                                        ? 'bg-primary bg-opacity-10 text-primary'
+                                        : 'text-body hover:bg-primary hover:bg-opacity-10 hover:text-primary dark:text-bodydark1 dark:hover:bg-primary dark:hover:bg-opacity-10 dark:hover:text-primary'
+                                    }`}
+                                  >
+                                    {subItem.title}
+                                  </Link>
+                                </li>
+                              )
+                            })}
+                          </ul>
+                        )}
+                      </>
+                    ) : (
+                      <Link
+                        href={item.href!}
+                        className={`group relative flex items-center gap-2.5 rounded-sm px-4 py-2 font-medium duration-300 ease-in-out ${
+                          isActive
+                            ? 'bg-primary bg-opacity-10 text-primary'
+                            : 'text-body hover:bg-primary hover:bg-opacity-10 hover:text-primary dark:text-bodydark1 dark:hover:bg-primary dark:hover:bg-opacity-10 dark:hover:text-primary'
+                        }`}
+                        title={!sidebarOpen ? item.title : undefined}
+                      >
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                        {sidebarOpen && item.title}
+                      </Link>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+
+          {/* Others Group */}
+          <div>
+            {sidebarOpen && (
+              <h3 className="mb-4 ml-4 text-sm font-semibold text-body dark:text-bodydark2">OTHERS</h3>
+            )}
+
+            <ul className="mb-6 flex flex-col gap-1.5">
+              <li>
+                <button
+                  onClick={handleLogout}
+                  className="group relative flex w-full items-center gap-2.5 rounded-sm px-4 py-2 font-medium text-body duration-300 ease-in-out hover:bg-primary hover:bg-opacity-10 hover:text-primary dark:text-bodydark1 dark:hover:bg-primary dark:hover:bg-opacity-10 dark:hover:text-primary"
+                  title={!sidebarOpen ? 'ออกจากระบบ' : undefined}
+                >
+                  <LogOut className="h-5 w-5 flex-shrink-0" />
+                  {sidebarOpen && 'ออกจากระบบ'}
+                </button>
+              </li>
+            </ul>
+          </div>
         </nav>
-
-        {/* Logout */}
-        <div className="border-t border-stroke dark:border-strokedark p-4">
-          <button
-            onClick={handleLogout}
-            className={cn(
-              'flex w-full items-center space-x-3 rounded-lg px-3 py-2.5 text-sm font-medium text-bodydark1 transition-colors hover:bg-gray-100 dark:hover:bg-meta-4',
-              collapsed && 'justify-center'
-            )}
-            title={collapsed ? 'Logout' : undefined}
-          >
-            <LogOut className="h-5 w-5 flex-shrink-0" />
-            {!collapsed && <span>ออกจากระบบ</span>}
-          </button>
-        </div>
+        {/* Sidebar Menu */}
       </div>
     </aside>
   )

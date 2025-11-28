@@ -2,10 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import Link from 'next/link'
+import { FileText, Upload, Save, X, AlertCircle } from 'lucide-react'
 
 export default function ImportPdfPage() {
   const router = useRouter()
@@ -30,7 +27,6 @@ export default function ImportPdfPage() {
     setExtractedData(null)
     setRawText('')
 
-    // อ่าน PDF อัตโนมัติ
     await handleParsePdf(selectedFile)
   }
 
@@ -66,7 +62,6 @@ export default function ImportPdfPage() {
       setExtractedData(data.extracted)
       setRawText(data.rawText)
       
-      // ตั้งค่า form data จากข้อมูลที่ดึงได้
       setFormData({
         quotationNumber: data.extracted.quotationNumber || '',
         customerName: data.extracted.customerName || '',
@@ -142,223 +137,290 @@ export default function ImportPdfPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Import จาก PDF</h1>
-        <p className="text-muted-foreground mt-1">อ่านและนำเข้าข้อมูลจาก Job Order PDF</p>
+    <>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-title-md2 font-semibold text-black dark:text-white">
+          Import จาก PDF
+        </h2>
       </div>
 
-      <div className="space-y-6">
-          {/* Upload Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>เลือกไฟล์ PDF (Job Order)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <input
-                    type="file"
-                    accept=".pdf"
-                    onChange={handleFileChange}
-                    className="hidden"
-                    id="pdf-upload"
-                  />
-                  <label htmlFor="pdf-upload" className="cursor-pointer inline-flex flex-col items-center">
-                    <svg className="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                    <span className="text-sm text-gray-600">คลิกเพื่อเลือกไฟล์ PDF</span>
-                  </label>
-                </div>
-
-                {file && (
-                  <div className="flex items-center justify-between p-4 bg-blue-50 rounded-md">
-                    <div className="flex items-center gap-3">
-                      <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                      </svg>
-                      <div>
-                        <p className="font-medium">{file.name}</p>
-                        <p className="text-sm text-gray-600">{(file.size / 1024).toFixed(2)} KB</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {error && (
-                  <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-                    <p className="text-sm text-red-800">{error}</p>
-                  </div>
-                )}
-
-                {loading && (
-                  <div className="flex flex-col items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                    <p className="text-gray-600">กำลังอ่านไฟล์ PDF...</p>
-                  </div>
-                )}
+      <div className="flex flex-col gap-6">
+        {/* Upload Section */}
+        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="border-b border-stroke px-6.5 py-4 dark:border-strokedark">
+            <h3 className="font-medium text-black dark:text-white">
+              เลือกไฟล์ PDF (Job Order)
+            </h3>
+          </div>
+          <div className="p-6.5">
+            <div className="mb-4">
+              <div className="relative">
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="pdf-upload"
+                />
+                <label
+                  htmlFor="pdf-upload"
+                  className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-stroke bg-gray-2 p-12 hover:bg-gray dark:border-strokedark dark:bg-meta-4 dark:hover:bg-meta-4"
+                >
+                  <Upload className="mb-4 h-12 w-12 text-body" />
+                  <span className="mb-2 text-base font-medium text-black dark:text-white">
+                    คลิกเพื่อเลือกไฟล์ PDF
+                  </span>
+                  <span className="text-sm text-body">
+                    รองรับไฟล์ .pdf เท่านั้น
+                  </span>
+                </label>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Extracted Data Form */}
-          {extractedData && !loading && (
-            <Card>
-              <CardHeader>
-                <CardTitle>ข้อมูลที่ดึงจาก PDF</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-md mb-4">
-                    <p className="text-sm text-green-800">
-                      ✓ อ่านไฟล์ PDF สำเร็จ กรุณาตรวจสอบและแก้ไขข้อมูลก่อนบันทึก
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">เลขที่ใบเสนอราคา *</label>
-                      <Input
-                        value={formData.quotationNumber}
-                        onChange={(e) => handleInputChange('quotationNumber', e.target.value)}
-                        placeholder="SAHO68-168000095"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">ชื่อลูกค้า *</label>
-                      <Input
-                        value={formData.customerName}
-                        onChange={(e) => handleInputChange('customerName', e.target.value)}
-                        placeholder="คุณ..."
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">วันที่ส่งใบเสนอ</label>
-                      <Input
-                        type="date"
-                        value={formData.submissionDate}
-                        onChange={(e) => handleInputChange('submissionDate', e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">วันส่งรถ</label>
-                      <Input
-                        type="date"
-                        value={formData.deliveryDate}
-                        onChange={(e) => handleInputChange('deliveryDate', e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">สถานที่ส่ง</label>
-                      <Input
-                        value={formData.deliveryPlace}
-                        onChange={(e) => handleInputChange('deliveryPlace', e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">รุ่นรถ</label>
-                      <Input
-                        value={formData.carModel}
-                        onChange={(e) => handleInputChange('carModel', e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">จำนวน</label>
-                      <Input
-                        type="number"
-                        value={formData.quantity}
-                        onChange={(e) => handleInputChange('quantity', e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">ราคาต่อคัน</label>
-                      <Input
-                        type="number"
-                        value={formData.pricePerUnit}
-                        onChange={(e) => handleInputChange('pricePerUnit', e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">สี Body</label>
-                      <Input
-                        value={formData.bodyColor}
-                        onChange={(e) => handleInputChange('bodyColor', e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">สี Seat</label>
-                      <Input
-                        value={formData.seatColor}
-                        onChange={(e) => handleInputChange('seatColor', e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">สี Canopy</label>
-                      <Input
-                        value={formData.canopyColor}
-                        onChange={(e) => handleInputChange('canopyColor', e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">ยอดรวม</label>
-                      <Input
-                        type="number"
-                        value={formData.grandTotal}
-                        onChange={(e) => handleInputChange('grandTotal', e.target.value)}
-                        disabled
-                      />
-                    </div>
-                  </div>
-
+            {file && (
+              <div className="mb-4 flex items-center justify-between rounded-lg border border-stroke bg-gray-2 p-4 dark:border-strokedark dark:bg-meta-4">
+                <div className="flex items-center gap-3">
+                  <FileText className="h-8 w-8 text-meta-1" />
                   <div>
-                    <label className="block text-sm font-medium mb-2">Options เพิ่มเติม</label>
-                    <textarea
-                      className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                      value={formData.additionalOptions}
-                      onChange={(e) => handleInputChange('additionalOptions', e.target.value)}
-                      rows={4}
-                    />
-                  </div>
-
-                  <div className="flex gap-4 pt-4">
-                    <Button variant="outline" onClick={() => setExtractedData(null)} className="flex-1">
-                      ยกเลิก
-                    </Button>
-                    <Button onClick={handleSave} disabled={loading} className="flex-1">
-                      {loading ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
-                    </Button>
+                    <p className="font-medium text-black dark:text-white">{file.name}</p>
+                    <p className="text-sm text-body">{(file.size / 1024).toFixed(2)} KB</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            )}
 
-          {/* Raw Text Preview */}
-          {rawText && (
-            <Card>
-              <CardHeader>
-                <CardTitle>ข้อความที่อ่านได้จาก PDF (สำหรับตรวจสอบ)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <pre className="text-xs bg-gray-100 p-4 rounded-md overflow-auto max-h-64">
-                  {rawText}
-                </pre>
-              </CardContent>
-            </Card>
-          )}
+            {error && (
+              <div className="mb-4 flex items-start gap-3 rounded-lg border border-meta-1 bg-meta-1 bg-opacity-10 p-4">
+                <AlertCircle className="h-5 w-5 text-meta-1" />
+                <p className="text-sm text-meta-1">{error}</p>
+              </div>
+            )}
+
+            {loading && (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="h-16 w-16 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
+                <p className="mt-4 text-black dark:text-white">กำลังอ่านไฟล์ PDF...</p>
+              </div>
+            )}
+          </div>
         </div>
-    </div>
+
+        {/* Extracted Data Form */}
+        {extractedData && !loading && (
+          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="border-b border-stroke px-6.5 py-4 dark:border-strokedark">
+              <h3 className="font-medium text-black dark:text-white">
+                ข้อมูลที่ดึงจาก PDF
+              </h3>
+            </div>
+            <div className="p-6.5">
+              <div className="mb-6 flex items-start gap-3 rounded-lg border border-success bg-success bg-opacity-10 p-4">
+                <svg className="h-5 w-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <p className="text-sm text-success">
+                  อ่านไฟล์ PDF สำเร็จ กรุณาตรวจสอบและแก้ไขข้อมูลก่อนบันทึก
+                </p>
+              </div>
+
+              <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">
+                    เลขที่ใบเสนอราคา <span className="text-meta-1">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.quotationNumber}
+                    onChange={(e) => handleInputChange('quotationNumber', e.target.value)}
+                    placeholder="SAHO68-168000095"
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">
+                    ชื่อลูกค้า <span className="text-meta-1">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.customerName}
+                    onChange={(e) => handleInputChange('customerName', e.target.value)}
+                    placeholder="คุณ..."
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">
+                    วันที่ส่งใบเสนอ
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.submissionDate}
+                    onChange={(e) => handleInputChange('submissionDate', e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">
+                    วันส่งรถ
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.deliveryDate}
+                    onChange={(e) => handleInputChange('deliveryDate', e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">
+                    สถานที่ส่ง
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.deliveryPlace}
+                    onChange={(e) => handleInputChange('deliveryPlace', e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">
+                    รุ่นรถ
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.carModel}
+                    onChange={(e) => handleInputChange('carModel', e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">
+                    จำนวน
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.quantity}
+                    onChange={(e) => handleInputChange('quantity', e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">
+                    ราคาต่อคัน
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.pricePerUnit}
+                    onChange={(e) => handleInputChange('pricePerUnit', e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">
+                    สี Body
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.bodyColor}
+                    onChange={(e) => handleInputChange('bodyColor', e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">
+                    สี Seat
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.seatColor}
+                    onChange={(e) => handleInputChange('seatColor', e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">
+                    สี Canopy
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.canopyColor}
+                    onChange={(e) => handleInputChange('canopyColor', e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">
+                    ยอดรวม
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.grandTotal}
+                    onChange={(e) => handleInputChange('grandTotal', e.target.value)}
+                    disabled
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-whiter px-5 py-3 text-black outline-none transition disabled:cursor-default dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <label className="mb-2.5 block font-medium text-black dark:text-white">
+                  Options เพิ่มเติม
+                </label>
+                <textarea
+                  value={formData.additionalOptions}
+                  onChange={(e) => handleInputChange('additionalOptions', e.target.value)}
+                  rows={4}
+                  className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setExtractedData(null)}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-stroke px-6 py-3 font-medium text-black hover:shadow-1 dark:border-strokedark dark:text-white"
+                >
+                  <X className="h-5 w-5" />
+                  ยกเลิก
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={loading}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                >
+                  <Save className="h-5 w-5" />
+                  {loading ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Raw Text Preview */}
+        {rawText && (
+          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="border-b border-stroke px-6.5 py-4 dark:border-strokedark">
+              <h3 className="font-medium text-black dark:text-white">
+                ข้อความที่อ่านได้จาก PDF (สำหรับตรวจสอบ)
+              </h3>
+            </div>
+            <div className="p-6.5">
+              <pre className="max-h-64 overflow-auto rounded-lg bg-gray-2 p-4 text-xs text-black dark:bg-meta-4 dark:text-white">
+                {rawText}
+              </pre>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   )
 }

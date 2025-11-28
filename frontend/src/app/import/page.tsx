@@ -2,9 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
+import { Upload, FileSpreadsheet, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 
 interface Record {
   rowNumber: number
@@ -58,6 +56,58 @@ export default function ImportPage() {
   const [result, setResult] = useState<any>(null)
   const [error, setError] = useState('')
   const [step, setStep] = useState<'upload' | 'sheet' | 'mapping' | 'preview' | 'result'>('upload')
+
+  const autoMapColumn = (excelColumn: string): string => {
+    const col = excelColumn.toLowerCase().trim()
+    
+    if (col.includes('เลขที่') || col.includes('quotation') || col.includes('job no') || col === 'no.' || col === 'no') return 'quotationNumber'
+    if (col.includes('ลูกค้า') || col.includes('customer') || col.includes('cutomer') || col.includes('บริษัท') || col.includes('company')) return 'customerName'
+    if (col.includes('วันที่') || col.includes('date') || col.includes('job date')) return 'submissionDate'
+    if (col.includes('กลุ่ม') || col.includes('group')) return 'customerGroup'
+    if (col.includes('ผู้ขาย') || col === 'sale' || col === 'sales') return 'saleMemberName'
+    if (col.includes('รหัส') || col.includes('code')) return 'customerCode'
+    if (col.includes('category') || col.includes('ประเภท')) return 'categoryName'
+    if (col.includes('รุ่น') || col === 'model' || col.includes('รถ') || col.includes('car')) return 'carName'
+    if (col.includes('body') || col.includes('ตัวรถ')) return 'bodyColor'
+    if (col.includes('seat') || col.includes('เบาะ')) return 'seatColor'
+    if (col.includes('canopy') || col.includes('หลังคา')) return 'canopyColor'
+    if (col.includes('option') || col.includes('ออฟชั่น')) return 'additionalOptions'
+    if (col.includes('จำนวน') || col === 'qty' || col === 'quantity') return 'quantity'
+    if (col.includes('ราคา') || col.includes('price')) return 'pricePerUnit'
+    if (col.includes('หมายเหตุ') || col.includes('remark') || col.includes('note')) return 'salesNote'
+    if (col.includes('จังหวัด') || col.includes('province')) return 'provinceName'
+    if (col.includes('เที่ยว') || col.includes('trip')) return 'transportTrips'
+    if (col.includes('สถานะ') || col === 'status') return 'statusSaleName'
+    if (col.includes('ส่งรถ') || col.includes('delivery')) return 'deliveryDate'
+    if (col === 'location' || col.includes('สถานที่')) return 'location'
+    if (col.includes('ประสานงาน') || col.includes('coordinator')) return 'coordinatorContact'
+    if (col.includes('รับรถ') || col.includes('recipient')) return 'vehicleRecipient'
+    
+    return ''
+  }
+
+  const loadSavedMappings = (): { [key: string]: string } => {
+    try {
+      const saved = localStorage.getItem('columnMappings')
+      return saved ? JSON.parse(saved) : {}
+    } catch {
+      return {}
+    }
+  }
+
+  const saveMappings = (mappings: ColumnMapping[]) => {
+    try {
+      const mappingObj: { [key: string]: string } = {}
+      mappings.forEach(m => {
+        if (m.systemField) {
+          mappingObj[m.excelColumn] = m.systemField
+        }
+      })
+      localStorage.setItem('columnMappings', JSON.stringify(mappingObj))
+    } catch (error) {
+      console.error('Failed to save mappings:', error)
+    }
+  }
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -118,10 +168,8 @@ export default function ImportPage() {
       const data = await response.json()
       setPreview(data)
       
-      // โหลด saved mappings จาก localStorage
       const savedMappings = loadSavedMappings()
       
-      // สร้าง column mappings โดยใช้ saved mappings ถ้ามี
       const mappings: ColumnMapping[] = data.columns.map((col: string) => {
         const savedMapping = savedMappings[col]
         return {
@@ -137,99 +185,6 @@ export default function ImportPage() {
     }
   }
 
-  const loadSavedMappings = (): { [key: string]: string } => {
-    try {
-      const saved = localStorage.getItem('columnMappings')
-      return saved ? JSON.parse(saved) : {}
-    } catch {
-      return {}
-    }
-  }
-
-  const saveMappings = (mappings: ColumnMapping[]) => {
-    try {
-      const mappingObj: { [key: string]: string } = {}
-      mappings.forEach(m => {
-        if (m.systemField) {
-          mappingObj[m.excelColumn] = m.systemField
-        }
-      })
-      localStorage.setItem('columnMappings', JSON.stringify(mappingObj))
-    } catch (error) {
-      console.error('Failed to save mappings:', error)
-    }
-  }
-
-  const autoMapColumn = (excelColumn: string): string => {
-    const col = excelColumn.toLowerCase().trim()
-    
-    // เลขที่
-    if (col.includes('เลขที่') || col.includes('quotation') || col.includes('job no') || col === 'no.' || col === 'no') return 'quotationNumber'
-    
-    // ชื่อลูกค้า - เพิ่มกรณีสะกดผิด
-    if (col.includes('ลูกค้า') || col.includes('customer') || col.includes('cutomer') || col.includes('custmer') || 
-        col.includes('บริษัท') || col.includes('company') || col.includes('client')) return 'customerName'
-    
-    // วันที่
-    if (col.includes('วันที่') || col.includes('date') || col.includes('job date')) return 'submissionDate'
-    
-    // กลุ่ม
-    if (col.includes('กลุ่ม') || col.includes('group')) return 'customerGroup'
-    
-    // ผู้ขาย - ระวัง "Sale" อาจเป็นชื่อลูกค้าได้
-    if (col.includes('ผู้ขาย') || col === 'sale' || col === 'sales' || col.includes('salesperson')) return 'saleMemberName'
-    
-    // รหัส
-    if (col.includes('รหัส') || col.includes('code')) return 'customerCode'
-    
-    // Category
-    if (col.includes('category') || col.includes('ประเภท')) return 'categoryName'
-    
-    // รุ่นรถ
-    if (col.includes('รุ่น') || col === 'model' || col.includes('รถ') || col.includes('car')) return 'carName'
-    
-    // สี
-    if (col.includes('body') || col.includes('ตัวรถ')) return 'bodyColor'
-    if (col.includes('seat') || col.includes('เบาะ')) return 'seatColor'
-    if (col.includes('canopy') || col.includes('หลังคา')) return 'canopyColor'
-    if (col === 'color' || col === 'colour') return 'bodyColor'
-    
-    // Option
-    if (col.includes('option') || col.includes('ออฟชั่น') || col.includes('special')) return 'additionalOptions'
-    
-    // จำนวน
-    if (col.includes('จำนวน') || col === 'qty' || col === 'unit' || col === 'quantity') return 'quantity'
-    
-    // ราคา
-    if (col.includes('ราคา') || col.includes('price') || col.includes('amount')) return 'pricePerUnit'
-    
-    // หมายเหตุ
-    if (col.includes('หมายเหตุ') || col.includes('remark') || col.includes('note')) return 'salesNote'
-    
-    // จังหวัด
-    if (col.includes('จังหวัด') || col.includes('province')) return 'provinceName'
-    
-    // เที่ยว
-    if (col.includes('เที่ยว') || col.includes('trip')) return 'transportTrips'
-    
-    // สถานะ
-    if (col.includes('สถานะ') || col === 'status' || col === 'state') return 'statusSaleName'
-    
-    // วันส่งรถ
-    if (col.includes('ส่งรถ') || col.includes('delivery')) return 'deliveryDate'
-    
-    // Location
-    if (col === 'location' || col.includes('สถานที่') || col.includes('ที่ตั้ง') || col.includes('พื้นที่')) return 'location'
-    
-    // ผู้ติดต่อประสานงาน
-    if (col.includes('ประสานงาน') || col.includes('coordinator') || col.includes('contact person')) return 'coordinatorContact'
-    
-    // ผู้ติดต่อรับรถ
-    if (col.includes('รับรถ') || col.includes('recipient') || col.includes('receiver')) return 'vehicleRecipient'
-    
-    return ''
-  }
-
   const handleMappingChange = (excelColumn: string, systemField: string) => {
     setColumnMappings(mappings =>
       mappings.map(m =>
@@ -239,25 +194,21 @@ export default function ImportPage() {
   }
 
   const handleConfirmMapping = () => {
-    // ตรวจสอบว่ามี required fields ครบหรือไม่
     const hasCustomerName = columnMappings.some(m => m.systemField === 'customerName')
     
     if (!hasCustomerName) {
-      setError('⚠️ กรุณา map column "ชื่อลูกค้า" (จำเป็น) - ลองเลือก column ที่มีชื่อบริษัทหรือชื่อลูกค้า')
+      setError('⚠️ กรุณา map column "ชื่อลูกค้า" (จำเป็น)')
       return
     }
 
-    // บันทึก mappings ลง localStorage
     saveMappings(columnMappings)
 
-    // สร้าง records จาก preview data โดยใช้ custom mapping
     const records = preview.records.map((record: any) => {
       const mappedData: any = {}
       
       columnMappings.forEach(mapping => {
         if (mapping.systemField) {
           const value = record.rawData[mapping.excelColumn]
-          // แปลงค่าตัวเลขถ้าเป็นฟิลด์ที่ต้องการตัวเลข
           if (['quantity', 'pricePerUnit', 'transportTrips', 'pricePerTrip'].includes(mapping.systemField)) {
             mappedData[mapping.systemField] = parseFloat(String(value || 0).replace(/,/g, '')) || 0
           } else {
@@ -280,7 +231,6 @@ export default function ImportPage() {
   const handleClearSavedMappings = () => {
     try {
       localStorage.removeItem('columnMappings')
-      // รีเซ็ต mappings เป็น auto-map
       const mappings: ColumnMapping[] = columnMappings.map(m => ({
         ...m,
         systemField: autoMapColumn(m.excelColumn)
@@ -346,7 +296,7 @@ export default function ImportPage() {
       if (data.success > 0 && data.failed === 0) {
         setTimeout(() => {
           router.push('/quotations')
-        }, 5000)
+        }, 3000)
       }
     } catch (err: any) {
       setError(err.message)
@@ -370,417 +320,483 @@ export default function ImportPage() {
   const rejectedCount = records.filter(r => r.status === 'rejected').length
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Import ข้อมูลจาก Excel</h1>
-        <p className="text-muted-foreground mt-1">นำเข้าข้อมูลใบเสนอราคาจากไฟล์ Excel</p>
+    <>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-title-md2 font-semibold text-black dark:text-white">
+          Import ข้อมูลจาก Excel
+        </h2>
       </div>
 
-      <div className="space-y-6">
-          {/* Step Indicator */}
-          <div className="flex items-center justify-center gap-2 text-xs md:text-sm">
-            <div className={`flex items-center gap-2 ${step === 'upload' ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 'upload' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>1</div>
-              <span className="hidden md:inline">อัพโหลด</span>
+      <div className="flex flex-col gap-6">
+        {/* Step Indicator */}
+        <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex items-center justify-center gap-2">
+            <div className={`flex items-center gap-2 ${step === 'upload' ? 'text-primary' : 'text-body'}`}>
+              <div className={`flex h-10 w-10 items-center justify-center rounded-full ${step === 'upload' ? 'bg-primary text-white' : 'bg-gray-2 dark:bg-meta-4'}`}>
+                1
+              </div>
+              <span className="hidden font-medium md:inline">อัพโหลด</span>
             </div>
-            <div className="w-8 md:w-12 h-0.5 bg-gray-300"></div>
-            <div className={`flex items-center gap-2 ${step === 'sheet' ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 'sheet' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>2</div>
-              <span className="hidden md:inline">Sheet</span>
+            <div className="h-0.5 w-12 bg-stroke dark:bg-strokedark"></div>
+            <div className={`flex items-center gap-2 ${step === 'sheet' ? 'text-primary' : 'text-body'}`}>
+              <div className={`flex h-10 w-10 items-center justify-center rounded-full ${step === 'sheet' ? 'bg-primary text-white' : 'bg-gray-2 dark:bg-meta-4'}`}>
+                2
+              </div>
+              <span className="hidden font-medium md:inline">Sheet</span>
             </div>
-            <div className="w-8 md:w-12 h-0.5 bg-gray-300"></div>
-            <div className={`flex items-center gap-2 ${step === 'mapping' ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 'mapping' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>3</div>
-              <span className="hidden md:inline">Mapping</span>
+            <div className="h-0.5 w-12 bg-stroke dark:bg-strokedark"></div>
+            <div className={`flex items-center gap-2 ${step === 'mapping' ? 'text-primary' : 'text-body'}`}>
+              <div className={`flex h-10 w-10 items-center justify-center rounded-full ${step === 'mapping' ? 'bg-primary text-white' : 'bg-gray-2 dark:bg-meta-4'}`}>
+                3
+              </div>
+              <span className="hidden font-medium md:inline">Mapping</span>
             </div>
-            <div className="w-8 md:w-12 h-0.5 bg-gray-300"></div>
-            <div className={`flex items-center gap-2 ${step === 'preview' ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 'preview' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>4</div>
-              <span className="hidden md:inline">ตรวจสอบ</span>
+            <div className="h-0.5 w-12 bg-stroke dark:bg-strokedark"></div>
+            <div className={`flex items-center gap-2 ${step === 'preview' ? 'text-primary' : 'text-body'}`}>
+              <div className={`flex h-10 w-10 items-center justify-center rounded-full ${step === 'preview' ? 'bg-primary text-white' : 'bg-gray-2 dark:bg-meta-4'}`}>
+                4
+              </div>
+              <span className="hidden font-medium md:inline">ตรวจสอบ</span>
             </div>
-            <div className="w-8 md:w-12 h-0.5 bg-gray-300"></div>
-            <div className={`flex items-center gap-2 ${step === 'result' ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 'result' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>5</div>
-              <span className="hidden md:inline">ผลลัพธ์</span>
+            <div className="h-0.5 w-12 bg-stroke dark:bg-strokedark"></div>
+            <div className={`flex items-center gap-2 ${step === 'result' ? 'text-primary' : 'text-body'}`}>
+              <div className={`flex h-10 w-10 items-center justify-center rounded-full ${step === 'result' ? 'bg-primary text-white' : 'bg-gray-2 dark:bg-meta-4'}`}>
+                5
+              </div>
+              <span className="hidden font-medium md:inline">ผลลัพธ์</span>
             </div>
           </div>
+        </div>
 
-          {/* Upload Section */}
-          {step === 'upload' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>เลือกไฟล์ Excel</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                    <input
-                      type="file"
-                      accept=".xlsx,.xls"
-                      onChange={handleFileChange}
-                      className="hidden"
-                      id="file-upload"
-                    />
-                    <label htmlFor="file-upload" className="cursor-pointer inline-flex flex-col items-center">
-                      <svg className="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                      </svg>
-                      <span className="text-sm text-gray-600">คลิกเพื่อเลือกไฟล์ Excel (.xlsx, .xls)</span>
-                    </label>
-                  </div>
-                  {error && (
-                    <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-                      <p className="text-sm text-red-800">{error}</p>
-                    </div>
-                  )}
+        {/* Upload Section */}
+        {step === 'upload' && (
+          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="border-b border-stroke px-6.5 py-4 dark:border-strokedark">
+              <h3 className="font-medium text-black dark:text-white">
+                เลือกไฟล์ Excel
+              </h3>
+            </div>
+            <div className="p-6.5">
+              <div className="mb-4">
+                <input
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="file-upload"
+                />
+                <label
+                  htmlFor="file-upload"
+                  className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-stroke bg-gray-2 p-12 hover:bg-gray dark:border-strokedark dark:bg-meta-4 dark:hover:bg-meta-4"
+                >
+                  <Upload className="mb-4 h-12 w-12 text-body" />
+                  <span className="mb-2 text-base font-medium text-black dark:text-white">
+                    คลิกเพื่อเลือกไฟล์ Excel
+                  </span>
+                  <span className="text-sm text-body">
+                    รองรับไฟล์ .xlsx, .xls
+                  </span>
+                </label>
+              </div>
+              {error && (
+                <div className="flex items-start gap-3 rounded-lg border border-meta-1 bg-meta-1 bg-opacity-10 p-4">
+                  <AlertCircle className="h-5 w-5 text-meta-1" />
+                  <p className="text-sm text-meta-1">{error}</p>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              )}
+            </div>
+          </div>
+        )}
 
-          {/* Sheet Selection */}
-          {step === 'sheet' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>เลือก Sheet ที่ต้องการ Import</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 bg-blue-50 rounded-md">
-                    <p className="text-sm text-gray-600 mb-2">ไฟล์: <span className="font-medium">{file?.name}</span></p>
-                    <p className="text-sm text-gray-600">พบ {availableSheets.length} sheets</p>
-                  </div>
+        {/* Sheet Selection */}
+        {step === 'sheet' && (
+          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="border-b border-stroke px-6.5 py-4 dark:border-strokedark">
+              <h3 className="font-medium text-black dark:text-white">
+                เลือก Sheet ที่ต้องการ Import
+              </h3>
+            </div>
+            <div className="p-6.5">
+              <div className="mb-6 rounded-lg border border-stroke bg-gray-2 p-4 dark:border-strokedark dark:bg-meta-4">
+                <p className="mb-2 text-sm text-body">
+                  <span className="font-medium text-black dark:text-white">ไฟล์:</span> {file?.name}
+                </p>
+                <p className="text-sm text-body">
+                  <span className="font-medium text-black dark:text-white">พบ:</span> {availableSheets.length} sheets
+                </p>
+              </div>
 
-                  <div className="space-y-2">
-                    {availableSheets.map((sheet, idx) => (
-                      <div
-                        key={idx}
-                        onClick={() => setSelectedSheet(sheet)}
-                        className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                          selectedSheet === sheet ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                              selectedSheet === sheet ? 'border-blue-500' : 'border-gray-300'
-                            }`}>
-                              {selectedSheet === sheet && <div className="w-3 h-3 rounded-full bg-blue-500"></div>}
-                            </div>
-                            <span className="font-medium">{sheet}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="flex gap-4">
-                    <Button variant="outline" onClick={handleReset} className="flex-1">ย้อนกลับ</Button>
-                    <Button onClick={handleSheetSelect} disabled={!selectedSheet} className="flex-1">ถัดไป</Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Column Mapping */}
-          {step === 'mapping' && preview && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Mapping Column จาก Excel กับฟิลด์ในระบบ</CardTitle>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={handleClearSavedMappings}
-                    className="text-xs"
-                  >
-                    🔄 รีเซ็ต Mapping
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 bg-blue-50 rounded-md">
-                    <p className="text-sm text-gray-600 mb-2">
-                      <span className="font-medium">Sheet:</span> {preview.sheetName} | 
-                      <span className="font-medium ml-2">จำนวนแถว:</span> {preview.totalRows} |
-                      <span className="font-medium ml-2">Column ทั้งหมด:</span> {columnMappings.length}
-                    </p>
-                    <p className="text-xs text-blue-700 mb-2">
-                      💡 ระบบจะจำ mapping ที่คุณเลือกไว้สำหรับครั้งถัดไป
-                    </p>
-                    <div className="flex gap-4 text-xs">
-                      <span className="text-green-700">
-                        ✓ Mapped: {columnMappings.filter(m => m.systemField).length}
-                      </span>
-                      <span className="text-gray-600">
-                        ○ ไม่ใช้: {columnMappings.filter(m => !m.systemField).length}
-                      </span>
-                      <span className={columnMappings.some(m => m.systemField === 'customerName') ? 'text-green-700 font-medium' : 'text-red-700 font-medium'}>
-                        {columnMappings.some(m => m.systemField === 'customerName') ? '✓' : '✗'} ชื่อลูกค้า (จำเป็น)
-                      </span>
-                    </div>
-                  </div>
-
-                  {error && (
-                    <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-                      <p className="text-sm text-red-800">{error}</p>
-                    </div>
-                  )}
-
-                  <div className="border rounded-lg overflow-hidden">
-                    <div className="bg-gray-50 px-4 py-3 border-b grid grid-cols-3 gap-4 font-medium text-sm">
-                      <div>Column ใน Excel</div>
-                      <div>ตัวอย่างข้อมูล</div>
-                      <div>ฟิลด์ในระบบ</div>
-                    </div>
-                    <div className="divide-y max-h-96 overflow-y-auto">
-                      {columnMappings.map((mapping, idx) => (
-                        <div key={idx} className="px-4 py-3 grid grid-cols-3 gap-4 items-center hover:bg-gray-50">
-                          <div className="font-medium text-sm">{mapping.excelColumn}</div>
-                          <div className="text-xs text-gray-600 truncate">
-                            {preview.records[0]?.rawData[mapping.excelColumn] || '-'}
-                          </div>
-                          <div>
-                            <select
-                              value={mapping.systemField}
-                              onChange={(e) => handleMappingChange(mapping.excelColumn, e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                              <option value="">-- ไม่ใช้ --</option>
-                              {SYSTEM_FIELDS.map(field => (
-                                <option key={field.value} value={field.value}>
-                                  {field.label} {field.required ? '(จำเป็น)' : ''}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-                    <p className="text-sm font-medium text-yellow-800 mb-2">💡 คำแนะนำ:</p>
-                    <ul className="text-sm text-yellow-700 space-y-1">
-                      <li>• <span className="font-medium">ชื่อลูกค้า</span> - จำเป็นต้องมี (ลองหา column ที่มีชื่อบริษัท/ลูกค้า)</li>
-                      <li>• <span className="font-medium">เลขที่ใบเสนอราคา</span> - ถ้าไม่มีจะสร้างอัตโนมัติ</li>
-                      <li>• Column ที่ไม่ต้องการใช้ สามารถเลือก "-- ไม่ใช้ --" ได้</li>
-                      <li>• ถ้า column ชื่อ "Sale" หรือ "Model" มีข้อมูลลูกค้า ให้ map เป็น "ชื่อลูกค้า"</li>
-                    </ul>
-                  </div>
-
-                  <div className="flex gap-4">
-                    <Button variant="outline" onClick={() => setStep('sheet')} className="flex-1">ย้อนกลับ</Button>
-                    <Button onClick={handleConfirmMapping} className="flex-1">ยืนยัน Mapping</Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Preview Section */}
-          {step === 'preview' && preview && (
-            <>
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>ตรวจสอบข้อมูล</CardTitle>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={handleRejectAll}>ยกเลิกทั้งหมด</Button>
-                      <Button size="sm" onClick={handleApproveAll}>เลือกทั้งหมด</Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="p-3 bg-blue-50 rounded-md">
-                        <p className="text-sm text-gray-600">Sheet</p>
-                        <p className="font-medium">{preview.sheetName}</p>
-                      </div>
-                      <div className="p-3 bg-green-50 rounded-md">
-                        <p className="text-sm text-gray-600">เลือกแล้ว</p>
-                        <p className="font-medium text-green-600">{approvedCount} แถว</p>
-                      </div>
-                      <div className="p-3 bg-red-50 rounded-md">
-                        <p className="text-sm text-gray-600">ยกเลิก</p>
-                        <p className="font-medium text-red-600">{rejectedCount} แถว</p>
-                      </div>
-                      <div className="p-3 bg-purple-50 rounded-md">
-                        <p className="text-sm text-gray-600">ทั้งหมด</p>
-                        <p className="font-medium">{records.length} แถว</p>
-                      </div>
-                    </div>
-
-                    {error && (
-                      <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-                        <p className="text-sm text-red-800">{error}</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="space-y-3 max-h-[500px] overflow-y-auto">
-                {records.map((record) => (
-                  <Card
-                    key={record.rowNumber}
-                    className={`transition-all ${
-                      record.status === 'approved' ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-white opacity-60'
+              <div className="mb-6 space-y-3">
+                {availableSheets.map((sheet, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => setSelectedSheet(sheet)}
+                    className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${
+                      selectedSheet === sheet 
+                        ? 'border-primary bg-primary bg-opacity-10' 
+                        : 'border-stroke hover:border-primary dark:border-strokedark'
                     }`}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 pt-1">
-                          <input
-                            type="checkbox"
-                            checked={record.status === 'approved'}
-                            onChange={() => handleToggleRecord(record.rowNumber)}
-                            className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
+                          selectedSheet === sheet ? 'border-primary' : 'border-stroke dark:border-strokedark'
+                        }`}>
+                          {selectedSheet === sheet && <div className="h-3 w-3 rounded-full bg-primary"></div>}
                         </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-3">
-                            <span className="text-xs font-medium text-gray-500">แถวที่ {record.rowNumber}</span>
-                            {record.status === 'approved' && (
-                              <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">✓ เลือกแล้ว</span>
-                            )}
-                            {!record.mappedData.quotationNumber && (
-                              <span className="text-xs px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full">⚠ ไม่มีเลขที่</span>
-                            )}
-                            {!record.mappedData.customerName && (
-                              <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full">⚠ ไม่มีชื่อลูกค้า</span>
-                            )}
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
-                            <div>
-                              <span className="text-gray-500">เลขที่:</span>
-                              <span className={`ml-2 font-medium ${!record.mappedData.quotationNumber ? 'text-yellow-600' : ''}`}>
-                                {record.mappedData.quotationNumber || '(จะสร้างอัตโนมัติ)'}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-gray-500">ลูกค้า:</span>
-                              <span className={`ml-2 font-medium ${!record.mappedData.customerName ? 'text-red-600' : ''}`}>
-                                {record.mappedData.customerName || '(ไม่พบข้อมูล)'}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-gray-500">รุ่นรถ:</span>
-                              <span className="ml-2">{record.mappedData.carName || '-'}</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-500">จำนวน:</span>
-                              <span className="ml-2">{record.mappedData.quantity || 0} คัน</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-500">ราคา:</span>
-                              <span className="ml-2">฿{(record.mappedData.pricePerUnit || 0).toLocaleString()}</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-500">ผู้ขาย:</span>
-                              <span className="ml-2">{record.mappedData.saleMemberName || '-'}</span>
-                            </div>
-                          </div>
-                        </div>
+                        <span className="font-medium text-black dark:text-white">{sheet}</span>
                       </div>
-                    </CardContent>
-                  </Card>
+                      <FileSpreadsheet className="h-5 w-5 text-body" />
+                    </div>
+                  </div>
                 ))}
               </div>
 
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex gap-4">
-                    <Button variant="outline" onClick={() => setStep('mapping')} className="flex-1">ย้อนกลับ</Button>
-                    <Button onClick={handleImport} disabled={importing || approvedCount === 0} className="flex-1">
-                      {importing ? 'กำลัง Import...' : `Import ${approvedCount} รายการ`}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </>
-          )}
+              <div className="flex gap-4">
+                <button
+                  onClick={handleReset}
+                  className="flex flex-1 items-center justify-center rounded-lg border border-stroke px-6 py-3 font-medium text-black hover:shadow-1 dark:border-strokedark dark:text-white"
+                >
+                  ย้อนกลับ
+                </button>
+                <button
+                  onClick={handleSheetSelect}
+                  disabled={!selectedSheet}
+                  className="flex flex-1 items-center justify-center rounded-lg bg-primary px-6 py-3 font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                >
+                  ถัดไป
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
-          {/* Result Section */}
-          {step === 'result' && result && (
-            <Card>
-              <CardHeader>
-                <CardTitle>ผลการ Import</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="p-4 bg-green-50 border border-green-200 rounded-md">
-                      <p className="text-sm text-gray-600">สำเร็จ</p>
-                      <p className="text-2xl font-bold text-green-600">{result.success}</p>
-                    </div>
-                    <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-                      <p className="text-sm text-gray-600">ล้มเหลว</p>
-                      <p className="text-2xl font-bold text-red-600">{result.failed}</p>
-                    </div>
-                    <div className="p-4 bg-gray-50 border border-gray-200 rounded-md">
-                      <p className="text-sm text-gray-600">ข้าม</p>
-                      <p className="text-2xl font-bold text-gray-600">{result.skipped || 0}</p>
-                    </div>
-                  </div>
+        {/* Column Mapping */}
+        {step === 'mapping' && preview && (
+          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="border-b border-stroke px-6.5 py-4 dark:border-strokedark">
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium text-black dark:text-white">
+                  Mapping Column จาก Excel กับฟิลด์ในระบบ
+                </h3>
+                <button
+                  onClick={handleClearSavedMappings}
+                  className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4"
+                >
+                  🔄 รีเซ็ต Mapping
+                </button>
+              </div>
+            </div>
+            <div className="p-6.5">
+              <div className="mb-6 rounded-lg border border-stroke bg-gray-2 p-4 dark:border-strokedark dark:bg-meta-4">
+                <p className="mb-2 text-sm text-body">
+                  <span className="font-medium text-black dark:text-white">Sheet:</span> {preview.sheetName} | 
+                  <span className="font-medium text-black dark:text-white ml-2">จำนวนแถว:</span> {preview.totalRows} |
+                  <span className="font-medium text-black dark:text-white ml-2">Column:</span> {columnMappings.length}
+                </p>
+                <p className="mb-3 text-xs text-body">
+                  💡 ระบบจะจำ mapping ที่คุณเลือกไว้สำหรับครั้งถัดไป
+                </p>
+                <div className="flex gap-4 text-xs">
+                  <span className="text-success">
+                    ✓ Mapped: {columnMappings.filter(m => m.systemField).length}
+                  </span>
+                  <span className="text-body">
+                    ○ ไม่ใช้: {columnMappings.filter(m => !m.systemField).length}
+                  </span>
+                  <span className={columnMappings.some(m => m.systemField === 'customerName') ? 'font-medium text-success' : 'font-medium text-meta-1'}>
+                    {columnMappings.some(m => m.systemField === 'customerName') ? '✓' : '✗'} ชื่อลูกค้า (จำเป็น)
+                  </span>
+                </div>
+              </div>
 
-                  {result.success > 0 && result.failed === 0 && (
-                    <div className="p-4 bg-green-50 border border-green-200 rounded-md">
-                      <p className="text-sm font-medium text-green-800 mb-2">
-                        ✓ Import สำเร็จทั้งหมด {result.success} รายการ
-                      </p>
-                      <p className="text-xs text-green-700 mb-2">กำลังนำคุณไปยังหน้ารายการใบเสนอราคาใน 5 วินาที...</p>
-                      <Link href="/quotations">
-                        <Button size="sm">ไปที่หน้ารายการเลย</Button>
-                      </Link>
-                    </div>
-                  )}
+              {error && (
+                <div className="mb-6 flex items-start gap-3 rounded-lg border border-meta-1 bg-meta-1 bg-opacity-10 p-4">
+                  <AlertCircle className="h-5 w-5 text-meta-1" />
+                  <p className="text-sm text-meta-1">{error}</p>
+                </div>
+              )}
 
-                  {result.errors && result.errors.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="font-medium text-red-600">รายการที่ล้มเหลว:</p>
-                      <div className="max-h-64 overflow-y-auto space-y-2">
-                        {result.errors.map((err: any, idx: number) => (
-                          <div key={idx} className="p-3 bg-red-50 border border-red-200 rounded-md text-sm">
-                            <p className="font-medium text-red-800">แถวที่ {err.rowNumber}</p>
-                            <p className="text-red-700">{err.error}</p>
-                          </div>
-                        ))}
+              <div className="mb-6 overflow-hidden rounded-lg border border-stroke dark:border-strokedark">
+                <div className="grid grid-cols-3 gap-4 border-b border-stroke bg-gray-2 px-4 py-3 font-medium dark:border-strokedark dark:bg-meta-4">
+                  <div className="text-sm text-black dark:text-white">Column ใน Excel</div>
+                  <div className="text-sm text-black dark:text-white">ตัวอย่างข้อมูล</div>
+                  <div className="text-sm text-black dark:text-white">ฟิลด์ในระบบ</div>
+                </div>
+                <div className="max-h-96 divide-y divide-stroke overflow-y-auto dark:divide-strokedark">
+                  {columnMappings.map((mapping, idx) => (
+                    <div key={idx} className="grid grid-cols-3 gap-4 px-4 py-3 hover:bg-gray-2 dark:hover:bg-meta-4">
+                      <div className="text-sm font-medium text-black dark:text-white">{mapping.excelColumn}</div>
+                      <div className="truncate text-xs text-body">
+                        {preview.records[0]?.rawData[mapping.excelColumn] || '-'}
+                      </div>
+                      <div>
+                        <select
+                          value={mapping.systemField}
+                          onChange={(e) => handleMappingChange(mapping.excelColumn, e.target.value)}
+                          className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                        >
+                          <option value="">-- ไม่ใช้ --</option>
+                          {SYSTEM_FIELDS.map(field => (
+                            <option key={field.value} value={field.value}>
+                              {field.label} {field.required ? '(จำเป็น)' : ''}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     </div>
-                  )}
+                  ))}
+                </div>
+              </div>
 
-                  {result.imported && result.imported.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="font-medium text-green-600">รายการที่ Import สำเร็จ:</p>
-                      <div className="max-h-64 overflow-y-auto space-y-2">
-                        {result.imported.map((item: any, idx: number) => (
-                          <div key={idx} className="p-3 bg-green-50 border border-green-200 rounded-md text-sm">
-                            <p className="font-medium">{item.quotationNumber}</p>
-                            <p className="text-gray-600">{item.customerName}</p>
-                            <p className="text-green-700">฿{item.grandTotal?.toLocaleString()}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+              <div className="mb-6 rounded-lg border border-warning bg-warning bg-opacity-10 p-4">
+                <p className="mb-2 text-sm font-medium text-warning">💡 คำแนะนำ:</p>
+                <ul className="space-y-1 text-sm text-body">
+                  <li>• <span className="font-medium">ชื่อลูกค้า</span> - จำเป็นต้องมี</li>
+                  <li>• <span className="font-medium">เลขที่ใบเสนอราคา</span> - ถ้าไม่มีจะสร้างอัตโนมัติ</li>
+                  <li>• Column ที่ไม่ต้องการใช้ สามารถเลือก "-- ไม่ใช้ --" ได้</li>
+                </ul>
+              </div>
 
-                  <div className="flex gap-4">
-                    <Button variant="outline" onClick={handleReset}>Import ไฟล์ใหม่</Button>
-                    <Link href="/quotations" className="flex-1">
-                      <Button className="w-full">ไปที่หน้ารายการ</Button>
-                    </Link>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setStep('sheet')}
+                  className="flex flex-1 items-center justify-center rounded-lg border border-stroke px-6 py-3 font-medium text-black hover:shadow-1 dark:border-strokedark dark:text-white"
+                >
+                  ย้อนกลับ
+                </button>
+                <button
+                  onClick={handleConfirmMapping}
+                  className="flex flex-1 items-center justify-center rounded-lg bg-primary px-6 py-3 font-medium text-white hover:bg-opacity-90"
+                >
+                  ยืนยัน Mapping
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Preview Section */}
+        {step === 'preview' && preview && (
+          <>
+            <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="border-b border-stroke px-6.5 py-4 dark:border-strokedark">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium text-black dark:text-white">
+                    ตรวจสอบข้อมูล
+                  </h3>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleRejectAll}
+                      className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4"
+                    >
+                      ยกเลิกทั้งหมด
+                    </button>
+                    <button
+                      onClick={handleApproveAll}
+                      className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90"
+                    >
+                      เลือกทั้งหมด
+                    </button>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-    </div>
+              </div>
+              <div className="p-6.5">
+                <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+                  <div className="rounded-lg border border-stroke bg-gray-2 p-4 dark:border-strokedark dark:bg-meta-4">
+                    <p className="text-sm text-body">Sheet</p>
+                    <p className="font-medium text-black dark:text-white">{preview.sheetName}</p>
+                  </div>
+                  <div className="rounded-lg border border-success bg-success bg-opacity-10 p-4">
+                    <p className="text-sm text-body">เลือกแล้ว</p>
+                    <p className="font-medium text-success">{approvedCount} แถว</p>
+                  </div>
+                  <div className="rounded-lg border border-meta-1 bg-meta-1 bg-opacity-10 p-4">
+                    <p className="text-sm text-body">ยกเลิก</p>
+                    <p className="font-medium text-meta-1">{rejectedCount} แถว</p>
+                  </div>
+                  <div className="rounded-lg border border-primary bg-primary bg-opacity-10 p-4">
+                    <p className="text-sm text-body">ทั้งหมด</p>
+                    <p className="font-medium text-primary">{records.length} แถว</p>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="mb-6 flex items-start gap-3 rounded-lg border border-meta-1 bg-meta-1 bg-opacity-10 p-4">
+                    <AlertCircle className="h-5 w-5 text-meta-1" />
+                    <p className="text-sm text-meta-1">{error}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="max-h-[600px] space-y-3 overflow-y-auto">
+              {records.map((record) => (
+                <div
+                  key={record.rowNumber}
+                  className={`rounded-sm border shadow-default transition-all ${
+                    record.status === 'approved' 
+                      ? 'border-success bg-success bg-opacity-10' 
+                      : 'border-stroke bg-white opacity-60 dark:border-strokedark dark:bg-boxdark'
+                  }`}
+                >
+                  <div className="p-4">
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0 pt-1">
+                        <input
+                          type="checkbox"
+                          checked={record.status === 'approved'}
+                          onChange={() => handleToggleRecord(record.rowNumber)}
+                          className="h-5 w-5 rounded border-stroke text-primary focus:ring-primary dark:border-strokedark"
+                        />
+                      </div>
+                      
+                      <div className="flex-1">
+                        <div className="mb-3 flex items-center gap-2">
+                          <span className="text-xs font-medium text-body">แถวที่ {record.rowNumber}</span>
+                          {record.status === 'approved' && (
+                            <span className="rounded-full bg-success px-2 py-0.5 text-xs text-white">✓ เลือกแล้ว</span>
+                          )}
+                          {!record.mappedData.quotationNumber && (
+                            <span className="rounded-full bg-warning px-2 py-0.5 text-xs text-white">⚠ ไม่มีเลขที่</span>
+                          )}
+                          {!record.mappedData.customerName && (
+                            <span className="rounded-full bg-meta-1 px-2 py-0.5 text-xs text-white">⚠ ไม่มีชื่อลูกค้า</span>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-3 text-sm md:grid-cols-2 lg:grid-cols-3">
+                          <div>
+                            <span className="text-body">เลขที่:</span>
+                            <span className={`ml-2 font-medium ${!record.mappedData.quotationNumber ? 'text-warning' : 'text-black dark:text-white'}`}>
+                              {record.mappedData.quotationNumber || '(จะสร้างอัตโนมัติ)'}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-body">ลูกค้า:</span>
+                            <span className={`ml-2 font-medium ${!record.mappedData.customerName ? 'text-meta-1' : 'text-black dark:text-white'}`}>
+                              {record.mappedData.customerName || '(ไม่พบข้อมูล)'}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-body">รุ่นรถ:</span>
+                            <span className="ml-2 text-black dark:text-white">{record.mappedData.carName || '-'}</span>
+                          </div>
+                          <div>
+                            <span className="text-body">จำนวน:</span>
+                            <span className="ml-2 text-black dark:text-white">{record.mappedData.quantity || 0} คัน</span>
+                          </div>
+                          <div>
+                            <span className="text-body">ราคา:</span>
+                            <span className="ml-2 text-black dark:text-white">฿{(record.mappedData.pricePerUnit || 0).toLocaleString()}</span>
+                          </div>
+                          <div>
+                            <span className="text-body">ผู้ขาย:</span>
+                            <span className="ml-2 text-black dark:text-white">{record.mappedData.saleMemberName || '-'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setStep('mapping')}
+                  className="flex flex-1 items-center justify-center rounded-lg border border-stroke px-6 py-3 font-medium text-black hover:shadow-1 dark:border-strokedark dark:text-white"
+                >
+                  ย้อนกลับ
+                </button>
+                <button
+                  onClick={handleImport}
+                  disabled={importing || approvedCount === 0}
+                  className="flex flex-1 items-center justify-center rounded-lg bg-primary px-6 py-3 font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                >
+                  {importing ? 'กำลัง Import...' : `Import ${approvedCount} รายการ`}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Result Section */}
+        {step === 'result' && result && (
+          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="border-b border-stroke px-6.5 py-4 dark:border-strokedark">
+              <h3 className="font-medium text-black dark:text-white">
+                ผลลัพธ์การ Import
+              </h3>
+            </div>
+            <div className="p-6.5">
+              <div className="mb-6 flex flex-col items-center justify-center py-8">
+                {result.failed === 0 ? (
+                  <>
+                    <CheckCircle className="mb-4 h-16 w-16 text-success" />
+                    <h4 className="mb-2 text-xl font-semibold text-black dark:text-white">
+                      Import สำเร็จ!
+                    </h4>
+                    <p className="text-body">
+                      Import ข้อมูลสำเร็จ {result.success} รายการ
+                    </p>
+                    <p className="mt-2 text-sm text-body">
+                      กำลังนำคุณไปยังหน้าใบเสนอราคา...
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="mb-4 h-16 w-16 text-warning" />
+                    <h4 className="mb-2 text-xl font-semibold text-black dark:text-white">
+                      Import เสร็จสิ้น (มีข้อผิดพลาดบางส่วน)
+                    </h4>
+                    <div className="mt-4 grid grid-cols-2 gap-4">
+                      <div className="rounded-lg border border-success bg-success bg-opacity-10 p-4 text-center">
+                        <p className="text-2xl font-bold text-success">{result.success}</p>
+                        <p className="text-sm text-body">สำเร็จ</p>
+                      </div>
+                      <div className="rounded-lg border border-meta-1 bg-meta-1 bg-opacity-10 p-4 text-center">
+                        <p className="text-2xl font-bold text-meta-1">{result.failed}</p>
+                        <p className="text-sm text-body">ล้มเหลว</p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {result.errors && result.errors.length > 0 && (
+                <div className="mb-6">
+                  <h5 className="mb-3 font-medium text-black dark:text-white">รายการที่ล้มเหลว:</h5>
+                  <div className="max-h-64 space-y-2 overflow-y-auto">
+                    {result.errors.map((err: any, idx: number) => (
+                      <div key={idx} className="rounded-lg border border-meta-1 bg-meta-1 bg-opacity-10 p-3">
+                        <p className="text-sm font-medium text-meta-1">แถวที่ {err.rowNumber}</p>
+                        <p className="text-xs text-body">{err.error}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-4">
+                <button
+                  onClick={handleReset}
+                  className="flex flex-1 items-center justify-center rounded-lg border border-stroke px-6 py-3 font-medium text-black hover:shadow-1 dark:border-strokedark dark:text-white"
+                >
+                  Import ไฟล์ใหม่
+                </button>
+                <button
+                  onClick={() => router.push('/quotations')}
+                  className="flex flex-1 items-center justify-center rounded-lg bg-primary px-6 py-3 font-medium text-white hover:bg-opacity-90"
+                >
+                  ไปยังหน้าใบเสนอราคา
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   )
 }

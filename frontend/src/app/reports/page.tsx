@@ -2,15 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import api from '@/lib/api'
 import { formatCurrency } from '@/lib/utils'
 import Link from 'next/link'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { Search, FileText } from 'lucide-react'
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
+const COLORS = ['#3C50E0', '#10B981', '#FFA70B', '#D34053', '#259AE6', '#FFBA00']
 
 export default function ReportsPage() {
   const router = useRouter()
@@ -59,18 +57,15 @@ export default function ReportsPage() {
     }
   }
 
-  // สร้างข้อมูลทุกเดือนระหว่างเดือนแรกและเดือนสุดท้ายที่มีข้อมูล
   const fillMissingMonths = (data: any[]) => {
     if (data.length === 0) return []
 
-    // หาเดือนเริ่มต้นและสิ้นสุดจากข้อมูลที่มี (ไม่ใช่จาก filter)
     const months = data.map(d => d.month).filter(m => m && m !== '[object').sort()
     if (months.length === 0) return data
 
-    const startMonth = months[0] // เดือนแรกที่มีข้อมูล
-    const endMonth = months[months.length - 1] // เดือนสุดท้ายที่มีข้อมูล
+    const startMonth = months[0]
+    const endMonth = months[months.length - 1]
 
-    // สร้าง array ของทุกเดือนระหว่างเดือนแรกถึงเดือนสุดท้าย
     const allMonths: string[] = []
     let current = new Date(startMonth + '-01')
     const end = new Date(endMonth + '-01')
@@ -80,7 +75,6 @@ export default function ReportsPage() {
       current.setMonth(current.getMonth() + 1)
     }
 
-    // เติมข้อมูลเดือนที่ขาด
     return allMonths.map(month => {
       const existing = data.find(d => d.month === month)
       return existing || {
@@ -102,7 +96,6 @@ export default function ReportsPage() {
     loadReport()
   }
 
-  // Prepare chart data with all months
   const filledData = fillMissingMonths(reportData)
   const monthlySalesData = filledData.map(month => ({
     month: month.month,
@@ -127,206 +120,236 @@ export default function ReportsPage() {
   }, [])
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">รายงานและสถิติ</h1>
-        <p className="text-muted-foreground mt-1">ดูรายงานและวิเคราะห์ข้อมูลการขาย</p>
+    <>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-title-md2 font-semibold text-black dark:text-white">
+          รายงานและสถิติ
+        </h2>
       </div>
 
-      <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>ตัวกรองข้อมูล</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">วันที่เริ่มต้น</label>
-                <Input
-                  type="date"
-                  value={filters.startDate}
-                  onChange={(e) => handleFilterChange('startDate', e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">วันที่สิ้นสุด</label>
-                <Input
-                  type="date"
-                  value={filters.endDate}
-                  onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">ผู้ขาย</label>
-                <select
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
-                  value={filters.saleMemberId}
-                  onChange={(e) => handleFilterChange('saleMemberId', e.target.value)}
-                >
-                  <option value="">ทั้งหมด</option>
-                  {masterData.saleMembers?.map((m: any) => (
-                    <option key={m.id} value={m.id}>{m.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-end">
-                <Button onClick={handleApplyFilters} className="w-full">
-                  ค้นหา
-                </Button>
-              </div>
+      {/* Filters */}
+      <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="border-b border-stroke px-6.5 py-4 dark:border-strokedark">
+          <h3 className="font-medium text-black dark:text-white">
+            ตัวกรองข้อมูล
+          </h3>
+        </div>
+        <div className="p-6.5">
+          <div className="mb-4.5 grid grid-cols-1 gap-6 md:grid-cols-4">
+            <div>
+              <label className="mb-2.5 block text-black dark:text-white">
+                วันที่เริ่มต้น
+              </label>
+              <input
+                type="date"
+                value={filters.startDate}
+                onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+              />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <label className="mb-2.5 block text-black dark:text-white">
+                วันที่สิ้นสุด
+              </label>
+              <input
+                type="date"
+                value={filters.endDate}
+                onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+              />
+            </div>
+            <div>
+              <label className="mb-2.5 block text-black dark:text-white">
+                ผู้ขาย
+              </label>
+              <select
+                value={filters.saleMemberId}
+                onChange={(e) => handleFilterChange('saleMemberId', e.target.value)}
+                className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+              >
+                <option value="">ทั้งหมด</option>
+                {masterData.saleMembers?.map((m: any) => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-end">
+              <button
+                onClick={handleApplyFilters}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary p-3 font-medium text-white hover:bg-opacity-90"
+              >
+                <Search className="h-5 w-5" />
+                ค้นหา
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        {loading ? (
-          <Card>
-            <CardContent className="py-12">
-              <div className="flex flex-col items-center justify-center space-y-4">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                <p className="text-gray-600">กำลังโหลดข้อมูล...</p>
+      {loading ? (
+        <div className="flex items-center justify-center rounded-sm border border-stroke bg-white p-12 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="text-center">
+            <div className="h-16 w-16 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent mx-auto"></div>
+            <p className="mt-4 text-black dark:text-white">กำลังโหลดข้อมูล...</p>
+          </div>
+        </div>
+      ) : reportData.length === 0 ? (
+        <div className="rounded-sm border border-stroke bg-white p-12 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <FileText className="h-16 w-16 text-body" />
+            <div className="text-center">
+              <p className="text-lg font-medium text-black dark:text-white">ไม่พบข้อมูล</p>
+              <p className="mt-1 text-sm text-body">ลองปรับเปลี่ยนตัวกรองหรือ import ข้อมูลใหม่</p>
+            </div>
+            <Link
+              href="/import"
+              className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-center font-medium text-white hover:bg-opacity-90"
+            >
+              Import ข้อมูล
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Charts */}
+          <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="rounded-sm border border-stroke bg-white p-7.5 shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="mb-4">
+                <h4 className="text-xl font-semibold text-black dark:text-white">
+                  ยอดขายรายเดือน
+                </h4>
               </div>
-            </CardContent>
-          </Card>
-        ) : reportData.length === 0 ? (
-          <Card>
-            <CardContent className="py-12">
-              <div className="flex flex-col items-center justify-center space-y-4">
-                <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <div className="text-center">
-                  <p className="text-lg font-medium text-gray-900">ไม่พบข้อมูล</p>
-                  <p className="text-sm text-gray-500 mt-1">ลองปรับเปลี่ยนตัวกรองหรือ import ข้อมูลใหม่</p>
-                </div>
-                <Link href="/import">
-                  <Button>Import ข้อมูล</Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>ยอดขายรายเดือน</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={monthlySalesData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip formatter={(value: any) => formatCurrency(value)} />
-                      <Legend />
-                      <Bar dataKey="totalSales" fill="#3b82f6" name="ยอดขาย" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>ยอดขายตามผู้ขาย</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={salesByMemberData}
-                        dataKey="amount"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        label={(entry) => `${entry.name}: ${formatCurrency(entry.amount)}`}
-                      >
-                        {salesByMemberData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value: any) => formatCurrency(value)} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={monthlySalesData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                  <XAxis dataKey="month" stroke="#64748B" />
+                  <YAxis stroke="#64748B" />
+                  <Tooltip 
+                    formatter={(value: any) => formatCurrency(value)}
+                    contentStyle={{ 
+                      backgroundColor: '#fff',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '8px'
+                    }}
+                  />
+                  <Legend />
+                  <Bar dataKey="totalSales" fill="#3C50E0" name="ยอดขาย" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>สรุปรายเดือน</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {reportData.map((month, idx) => (
-                    <div key={idx} className="border-b pb-4">
-                      <h3 className="text-lg font-semibold mb-3">{month.month}</h3>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <h4 className="font-medium mb-2">ยอดขายตามผู้ขาย</h4>
-                          <div className="space-y-1">
-                            {Object.entries(month.salesByMember).map(([name, data]: [string, any]) => (
-                              <div key={name} className="flex justify-between text-sm">
-                                <span>{name}</span>
-                                <span className="font-medium">
-                                  {formatCurrency(data.totalAmount)} ({data.totalCars} คัน)
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
+            <div className="rounded-sm border border-stroke bg-white p-7.5 shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="mb-4">
+                <h4 className="text-xl font-semibold text-black dark:text-white">
+                  ยอดขายตามผู้ขาย
+                </h4>
+              </div>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={salesByMemberData}
+                    dataKey="amount"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    label={(entry) => `${entry.name}: ${formatCurrency(entry.amount)}`}
+                  >
+                    {salesByMemberData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value: any) => formatCurrency(value)}
+                    contentStyle={{ 
+                      backgroundColor: '#fff',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '8px'
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
 
-                        <div>
-                          <h4 className="font-medium mb-2">สถานะงาน (Status Job)</h4>
-                          <div className="space-y-1">
-                            {Object.entries(month.carsByStatusJob).map(([status, count]: [string, any]) => (
-                              <div key={status} className="flex justify-between text-sm">
-                                <span>{status}</span>
-                                <span className="font-medium">{count} คัน</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div>
-                          <h4 className="font-medium mb-2">สถานะการขาย (Status Sale)</h4>
-                          <div className="space-y-1">
-                            {Object.entries(month.carsByStatusSale).map(([status, count]: [string, any]) => (
-                              <div key={status} className="flex justify-between text-sm">
-                                <span>{status}</span>
-                                <span className="font-medium">{count} คัน</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div>
-                          <h4 className="font-medium mb-2">สถานะเอกสาร (Status Job Document)</h4>
-                          <div className="space-y-1">
-                            {Object.entries(month.carsByStatusJobDocument).map(([status, count]: [string, any]) => (
-                              <div key={status} className="flex justify-between text-sm">
-                                <span>{status}</span>
-                                <span className="font-medium">{count} คัน</span>
-                              </div>
-                            ))}
-                          </div>
+          {/* Monthly Summary */}
+          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="border-b border-stroke px-6.5 py-4 dark:border-strokedark">
+              <h3 className="font-semibold text-black dark:text-white">
+                สรุปรายเดือน
+              </h3>
+            </div>
+            <div className="p-6.5">
+              <div className="space-y-6">
+                {reportData.map((month, idx) => (
+                  <div key={idx} className="border-b border-stroke pb-6 last:border-0 dark:border-strokedark">
+                    <h3 className="mb-4 text-lg font-semibold text-black dark:text-white">{month.month}</h3>
+                    
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                      <div>
+                        <h4 className="mb-3 font-medium text-black dark:text-white">ยอดขายตามผู้ขาย</h4>
+                        <div className="space-y-2">
+                          {Object.entries(month.salesByMember).map(([name, data]: [string, any]) => (
+                            <div key={name} className="flex justify-between text-sm">
+                              <span className="text-body">{name}</span>
+                              <span className="font-medium text-black dark:text-white">
+                                {formatCurrency(data.totalAmount)} ({data.totalCars} คัน)
+                              </span>
+                            </div>
+                          ))}
                         </div>
                       </div>
 
-                      <div className="mt-3 pt-3 border-t">
-                        <div className="flex justify-between font-semibold">
-                          <span>ยอดขายรวมเดือนนี้</span>
-                          <span className="text-green-600">{formatCurrency(month.totalSales)}</span>
+                      <div>
+                        <h4 className="mb-3 font-medium text-black dark:text-white">สถานะงาน (Status Job)</h4>
+                        <div className="space-y-2">
+                          {Object.entries(month.carsByStatusJob).map(([status, count]: [string, any]) => (
+                            <div key={status} className="flex justify-between text-sm">
+                              <span className="text-body">{status}</span>
+                              <span className="font-medium text-black dark:text-white">{count} คัน</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="mb-3 font-medium text-black dark:text-white">สถานะการขาย (Status Sale)</h4>
+                        <div className="space-y-2">
+                          {Object.entries(month.carsByStatusSale).map(([status, count]: [string, any]) => (
+                            <div key={status} className="flex justify-between text-sm">
+                              <span className="text-body">{status}</span>
+                              <span className="font-medium text-black dark:text-white">{count} คัน</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="mb-3 font-medium text-black dark:text-white">สถานะเอกสาร (Status Job Document)</h4>
+                        <div className="space-y-2">
+                          {Object.entries(month.carsByStatusJobDocument).map(([status, count]: [string, any]) => (
+                            <div key={status} className="flex justify-between text-sm">
+                              <span className="text-body">{status}</span>
+                              <span className="font-medium text-black dark:text-white">{count} คัน</span>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </div>
-                  ))}
 
-                </div>
-              </CardContent>
-            </Card>
-          </>
-        )}
-    </div>
+                    <div className="mt-4 border-t border-stroke pt-4 dark:border-strokedark">
+                      <div className="flex justify-between">
+                        <span className="font-semibold text-black dark:text-white">ยอดขายรวมเดือนนี้</span>
+                        <span className="font-semibold text-meta-3">{formatCurrency(month.totalSales)}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </>
   )
 }
