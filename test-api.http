@@ -1,0 +1,30 @@
+### สร้างผู้ใช้งานแรก
+POST http://localhost:3001/auth/register
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123",
+  "fullName": "ผู้ดูแลระบบ"
+}
+
+### Login
+POST http://localhost:3001/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### เริ่มต้นข้อมูล Master Data (ต้อง login ก่อน)
+POST http://localhost:3001/master-data/initialize
+Authorization: Bearer YOUR_TOKEN_HERE
+
+### ดูข้อมูลรถ
+GET http://localhost:3001/master-data/cars
+Authorization: Bearer YOUR_TOKEN_HERE
+
+### ดูข้อมูลผู้ขาย
+GET http://localhost:3001/master-data/sale-members
+Authorization: Bearer YOUR_TOKEN_HERE
