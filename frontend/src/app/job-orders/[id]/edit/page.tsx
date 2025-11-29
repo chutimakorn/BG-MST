@@ -152,7 +152,7 @@ export default function EditJobOrderPage() {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleFileUpload = async (fileType: 'po' | 'iv' | 'it', event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (fileType: 'po' | 'iv' | 'it' | 'dv' | 'job', event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
 
@@ -181,6 +181,7 @@ export default function EditJobOrderPage() {
       if (fileType === 'iv') handleChange('ivFileName', result.fileName)
       if (fileType === 'it') handleChange('itFileName', result.fileName)
       if (fileType === 'dv') handleChange('dvFileName', result.fileName)
+      if (fileType === 'job') handleChange('jobPdfFileName', result.fileName)
 
       alert('อัพโหลดไฟล์สำเร็จ')
       await loadData() // Reload data
@@ -191,7 +192,7 @@ export default function EditJobOrderPage() {
     }
   }
 
-  const handleDeleteFile = async (fileType: 'po' | 'iv' | 'it') => {
+  const handleDeleteFile = async (fileType: 'po' | 'iv' | 'it' | 'dv' | 'job') => {
     if (!confirm(`คุณแน่ใจหรือไม่ที่จะลบไฟล์ ${fileType.toUpperCase()}?`)) {
       return
     }
@@ -205,6 +206,7 @@ export default function EditJobOrderPage() {
       if (fileType === 'iv') handleChange('ivFileName', '')
       if (fileType === 'it') handleChange('itFileName', '')
       if (fileType === 'dv') handleChange('dvFileName', '')
+      if (fileType === 'job') handleChange('jobPdfFileName', '')
 
       alert('ลบไฟล์สำเร็จ')
       await loadData() // Reload data
