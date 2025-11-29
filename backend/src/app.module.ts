@@ -22,6 +22,10 @@ import { SettingsModule } from './settings/settings.module';
       database: process.env.DB_DATABASE,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
+      extra: {
+        // Force IPv4 for Supabase connection
+        family: 4,
+      },
       options: process.env.DB_TYPE === 'mssql' ? { 
         encrypt: false,
         trustServerCertificate: true,
