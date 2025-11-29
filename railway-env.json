@@ -1,0 +1,11 @@
+{
+  "PORT": "3001",
+  "DB_TYPE": "postgres",
+  "DB_HOST": "db.ndpdncfzdkrecuzczcho.supabase.co",
+  "DB_PORT": "5432",
+  "DB_USERNAME": "postgres",
+  "DB_PASSWORD": "1412Moon@",
+  "DB_DATABASE": "postgres",
+  "JWT_SECRET": "taeinwza",
+  "JWT_EXPIRES_IN": "7d"
+}
