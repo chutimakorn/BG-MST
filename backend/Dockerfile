@@ -16,8 +16,8 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Build application using TypeScript compiler
-RUN npx tsc -p tsconfig.json
+# Build application using TypeScript compiler from node_modules
+RUN ./node_modules/.bin/tsc -p tsconfig.json
 
 # Expose port
 EXPOSE 3001
