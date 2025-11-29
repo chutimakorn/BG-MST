@@ -16,8 +16,8 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Build application (NestJS)
-RUN npx nest build
+# Build application using TypeScript compiler
+RUN npx tsc -p tsconfig.json
 
 # Expose port
 EXPOSE 3001
