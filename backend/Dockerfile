@@ -1,26 +1,26 @@
 # Use Node 20
 FROM node:20-alpine
 
+# Install build dependencies
+RUN apk add --no-cache python3 make g++
+
 # Set working directory
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY package.json package-lock.json* ./
 
-# Install ALL dependencies (including devDependencies for build)
-RUN npm ci
+# Install dependencies
+RUN npm install
 
 # Copy source code
 COPY . .
 
-# Build application
-RUN npm run build
-
-# Remove devDependencies after build
-RUN npm prune --production
+# Build application (NestJS)
+RUN npx nest build
 
 # Expose port
 EXPOSE 3001
 
 # Start application
-CMD ["npm", "run", "start:prod"]
+CMD ["node", "dist/main.js"]
