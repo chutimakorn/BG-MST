@@ -21,6 +21,9 @@ export class Quotation {
   @Column({ length: 10 })
   customerGroup: string; // G/NG
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  customerGroupName: string; // กลุ่มลูกค้า (ชื่อกลุ่ม)
+
   @ManyToOne(() => SaleMember, { nullable: true })
   @JoinColumn()
   saleMember: SaleMember; // ชื่อผู้ขาย/SALE
@@ -78,7 +81,7 @@ export class Quotation {
   @Column({ type: 'varchar', length: 255, nullable: true })
   contactEmail: string; // E-Mail
 
-  @ManyToOne(() => JobOrder, { nullable: true })
+  @ManyToOne(() => JobOrder, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn()
   jobOrder: JobOrder; // Job Order ที่เกี่ยวข้อง
 
@@ -93,6 +96,9 @@ export class Quotation {
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   serialCode: string; // Serial / Code
+
+  @Column({ type: 'text', nullable: true })
+  remarkReason: string; // หมายเหตุ / เหตุผล
 
   @Column({ type: 'varchar', length: 50, default: 'processing' })
   status: string; // สถานะ: processing, close, cancel

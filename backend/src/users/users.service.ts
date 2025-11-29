@@ -23,4 +23,36 @@ export class UsersService {
     });
     return this.usersRepository.save(user);
   }
+
+  async findAll(): Promise<User[]> {
+    return this.usersRepository.find({
+      select: ['id', 'username', 'fullName', 'role', 'createdAt'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async findOne(id: number): Promise<User> {
+    return this.usersRepository.findOne({
+      where: { id },
+      select: ['id', 'username', 'fullName', 'role', 'createdAt'],
+    });
+  }
+
+  async update(id: number, data: any): Promise<User> {
+    const updateData: any = {
+      fullName: data.fullName,
+      role: data.role,
+    };
+
+    if (data.password) {
+      updateData.password = await bcrypt.hash(data.password, 10);
+    }
+
+    await this.usersRepository.update(id, updateData);
+    return this.findOne(id);
+  }
+
+  async delete(id: number): Promise<void> {
+    await this.usersRepository.delete(id);
+  }
 }

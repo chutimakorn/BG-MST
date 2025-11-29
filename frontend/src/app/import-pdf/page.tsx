@@ -62,6 +62,11 @@ export default function ImportPdfPage() {
       setExtractedData(data.extracted)
       setRawText(data.rawText)
       
+      // คำนวณยอดรวมจากข้อมูลที่ได้
+      const quantity = parseFloat(data.extracted.quantity) || 1
+      const pricePerUnit = parseFloat(data.extracted.pricePerUnit) || 0
+      const calculatedTotal = quantity * pricePerUnit
+      
       setFormData({
         quotationNumber: data.extracted.quotationNumber || '',
         customerName: data.extracted.customerName || '',
@@ -69,12 +74,12 @@ export default function ImportPdfPage() {
         deliveryDate: data.extracted.deliveryDate || '',
         deliveryPlace: data.extracted.deliveryPlace || '',
         carModel: data.extracted.carModel || '',
-        quantity: data.extracted.quantity || 1,
+        quantity: quantity,
         bodyColor: data.extracted.bodyColor || '',
         seatColor: data.extracted.seatColor || '',
         canopyColor: data.extracted.canopyColor || '',
-        pricePerUnit: data.extracted.pricePerUnit || 0,
-        grandTotal: data.extracted.grandTotal || 0,
+        pricePerUnit: pricePerUnit,
+        grandTotal: calculatedTotal,
         additionalOptions: data.extracted.additionalOptions?.join('\n') || '',
       })
     } catch (err: any) {
@@ -85,7 +90,18 @@ export default function ImportPdfPage() {
   }
 
   const handleInputChange = (field: string, value: any) => {
-    setFormData((prev: any) => ({ ...prev, [field]: value }))
+    setFormData((prev: any) => {
+      const updated = { ...prev, [field]: value }
+      
+      // คำนวณยอดรวมอัตโนมัติเมื่อเปลี่ยนจำนวนหรือราคาต่อคัน
+      if (field === 'quantity' || field === 'pricePerUnit') {
+        const quantity = field === 'quantity' ? parseFloat(value) || 0 : parseFloat(prev.quantity) || 0
+        const pricePerUnit = field === 'pricePerUnit' ? parseFloat(value) || 0 : parseFloat(prev.pricePerUnit) || 0
+        updated.grandTotal = quantity * pricePerUnit
+      }
+      
+      return updated
+    })
   }
 
   const handleSave = async () => {
@@ -108,13 +124,20 @@ export default function ImportPdfPage() {
         additionalOptions: formData.additionalOptions,
       }
 
+      // Create FormData to send both JSON data and file
+      const formDataToSend = new FormData()
+      formDataToSend.append('data', JSON.stringify(jobOrderData))
+      if (file) {
+        formDataToSend.append('file', file)
+      }
+
       const response = await fetch('http://localhost:3001/import/pdf/save', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          // Don't set Content-Type, let browser set it with boundary for FormData
         },
-        body: JSON.stringify(jobOrderData)
+        body: formDataToSend
       })
 
       if (!response.ok) {

@@ -11,6 +11,7 @@ import { StatusJobDocument } from '../entities/status-job-document.entity';
 import { StatusJob } from '../entities/status-job.entity';
 import { FileUploadService } from './file-upload.service';
 import { GoogleDriveService } from './google-drive.service';
+import { CloudinaryService } from './cloudinary.service';
 import { SettingsModule } from '../settings/settings.module';
 
 @Module({
@@ -27,7 +28,7 @@ import { SettingsModule } from '../settings/settings.module';
     ]),
   ],
   controllers: [JobOrdersController],
-  providers: [JobOrdersService, FileUploadService, GoogleDriveService],
+  providers: [JobOrdersService, FileUploadService, GoogleDriveService, CloudinaryService],
   exports: [JobOrdersService],
 })
 export class JobOrdersModule {}

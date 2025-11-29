@@ -11,14 +11,25 @@ export class QuotationsService {
   ) {}
 
   async findAll(filters?: any) {
+    const page = parseInt(filters?.page) || 1;
+    const limit = parseInt(filters?.limit) || 50;
+    const skip = (page - 1) * limit;
+    const sortBy = filters?.sortBy || 'submissionDate';
+    const sortOrder = filters?.sortOrder?.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+
     const query = this.quotationRepo.createQueryBuilder('q')
       .leftJoinAndSelect('q.saleMember', 'saleMember')
       .leftJoinAndSelect('q.car', 'car')
       .leftJoinAndSelect('q.province', 'province')
       .leftJoinAndSelect('q.jobOrder', 'jobOrder');
 
-    if (filters?.quotationNumber) {
-      query.andWhere('q.quotationNumber LIKE :quotationNumber', { quotationNumber: `%${filters.quotationNumber}%` });
+    // Search ทั้งเลขที่และชื่อลูกค้าพร้อมกัน (OR condition)
+    if (filters?.quotationNumber || filters?.customerName) {
+      const searchTerm = filters?.quotationNumber || filters?.customerName || '';
+      query.andWhere(
+        '(LOWER(q.quotationNumber) LIKE LOWER(:search) OR LOWER(q.customerName) LIKE LOWER(:search))',
+        { search: `%${searchTerm}%` }
+      );
     }
     if (filters?.saleMemberId) {
       query.andWhere('q.saleMemberId = :saleMemberId', { saleMemberId: filters.saleMemberId });
@@ -30,7 +41,26 @@ export class QuotationsService {
       query.andWhere('q.submissionDate <= :endDate', { endDate: filters.endDate });
     }
 
-    return query.orderBy('q.submissionDate', 'DESC').getMany();
+    // Sorting
+    const validSortFields = ['submissionDate', 'quotationNumber', 'customerName', 'grandTotal', 'status'];
+    const sortField = validSortFields.includes(sortBy) ? sortBy : 'submissionDate';
+    query.orderBy(`q.${sortField}`, sortOrder);
+
+    // Get total count
+    const total = await query.getCount();
+
+    // Apply pagination
+    const data = await query.skip(skip).take(limit).getMany();
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: number) {

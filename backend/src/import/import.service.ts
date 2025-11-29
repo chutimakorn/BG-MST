@@ -234,6 +234,7 @@ export class ImportService {
         submissionDate: this.parseDate(data.submissionDate),
         quotationNumber: data.quotationNumber,
         customerGroup: data.customerGroup || 'G',
+        customerGroupName: data.customerGroupName || null,
         saleMember,
         customerName: data.customerName,
         customerCode: data.customerCode || 'N/A',
@@ -248,6 +249,8 @@ export class ImportService {
         contactName: data.contactName || null,
         contactPhone: data.contactPhone || null,
         contactEmail: data.contactEmail || null,
+        remarkReason: data.remarkReason || null,
+        stockStatus: data.stockStatus || 'รอ 7-30',
       });
 
       // คำนวณยอดรวม
@@ -273,11 +276,15 @@ export class ImportService {
       'Customer', 'ชื่อ', 'Client', 'Company', 'ชื่อบริษัท'
     ]);
 
+    // Map stockStatus จาก 3 columns
+    const stockStatus = this.mapStockStatus(row);
+
     return {
       requestDate: this.findValue(row, ['วันที่ได้รับต้องการ', 'วันที่ต้องการ']),
       submissionDate: this.findValue(row, ['วันที่ส่งใบเสนอ', 'วันที่', 'Date', 'วันที่เสนอราคา']),
       quotationNumber,
-      customerGroup: this.findValue(row, ['กลุ่มลูกค้า', 'กลุ่ม', 'Group', 'G/NG']) || 'G',
+      customerGroup: this.findValue(row, ['G/NG', 'GNG']) || 'G',
+      customerGroupName: this.findValue(row, ['กลุ่มลูกค้า', 'Customer Group', 'กลุ่ม']),
       saleMemberName: this.findValue(row, ['ชื่อผู้ขาย/SALE', 'ผู้ขาย', 'SALE', 'Sale', 'พนักงานขาย']),
       customerName,
       customerCode: this.findValue(row, ['รหัสลูกค้า', 'รหัส', 'Code', 'Customer Code']),
@@ -294,7 +301,30 @@ export class ImportService {
       contactName: this.findValue(row, ['ชื่อผู้ติดต่อ', 'ผู้ติดต่อ', 'Contact Name']),
       contactPhone: this.findValue(row, ['เบอร์ติดต่อ', 'เบอร์', 'Phone', 'Tel']),
       contactEmail: this.findValue(row, ['E-Mail', 'Email', 'อีเมล']),
+      remarkReason: this.findValue(row, ['หมายเหตุ / เหตุผล', 'หมายเหตุ/เหตุผล', 'เหตุผล', 'Remark Reason']),
+      stockStatus,
     };
+  }
+
+  private mapStockStatus(row: any): string {
+    // เช็คว่า column ไหนมีค่า (/, ✓, หรือค่าอื่นๆ)
+    const ready = this.findValue(row, ['พร้อม', 'Ready', 'พร้อมส่ง']);
+    const wait7to30 = this.findValue(row, ['รอ 7-30', 'รอ 7 - 30', 'Wait 7-30', '7-30']);
+    const wait31to60 = this.findValue(row, ['รอ 31-60', 'รอ 31 - 60', 'Wait 31-60', '31-60']);
+
+    // ถ้ามีค่าใน column ไหน ให้ return ค่านั้น
+    if (ready && ready.toString().trim() !== '') {
+      return 'พร้อมส่ง';
+    }
+    if (wait7to30 && wait7to30.toString().trim() !== '') {
+      return 'รอ 7-30';
+    }
+    if (wait31to60 && wait31to60.toString().trim() !== '') {
+      return 'รอ 31-60';
+    }
+
+    // ค่า default
+    return 'รอ 7-30';
   }
 
   private findValue(row: any, possibleKeys: string[]): any {
@@ -325,11 +355,14 @@ export class ImportService {
   }
 
   mapEnglishFormat(row: any): any {
+    const stockStatus = this.mapStockStatus(row);
+
     return {
       requestDate: this.findValue(row, ['Request Date', 'Date Requested']),
       submissionDate: this.findValue(row, ['Submission Date', 'Date', 'Order Date']),
       quotationNumber: this.findValue(row, ['Quotation Number', 'Quote No', 'Number', 'No']),
-      customerGroup: 'G',
+      customerGroup: this.findValue(row, ['G/NG', 'GNG']) || 'G',
+      customerGroupName: this.findValue(row, ['Customer Group', 'Group Name']),
       saleMemberName: this.findValue(row, ['Sale', 'Sales', 'Salesperson']),
       customerName: this.findValue(row, ['Customer', 'Client', 'Company']),
       customerCode: this.findValue(row, ['Customer Code', 'Code']) || 'N/A',
@@ -344,6 +377,8 @@ export class ImportService {
       contactName: this.findValue(row, ['Contact Name', 'Contact Person']),
       contactPhone: this.findValue(row, ['Phone', 'Tel', 'Contact Phone']),
       contactEmail: this.findValue(row, ['Email', 'E-Mail']),
+      remarkReason: this.findValue(row, ['Remark Reason', 'Remark', 'Reason']),
+      stockStatus,
     };
   }
 
@@ -360,17 +395,28 @@ export class ImportService {
     if (!dateStr) return new Date();
     
     try {
+      let date: Date;
+      
       if (typeof dateStr === 'number') {
         const excelDate = XLSX.SSF.parse_date_code(dateStr);
-        return new Date(excelDate.y, excelDate.m - 1, excelDate.d);
+        date = new Date(excelDate.y, excelDate.m - 1, excelDate.d);
+      } else {
+        date = new Date(dateStr);
       }
       
-      const parsed = new Date(dateStr);
-      if (!isNaN(parsed.getTime())) {
-        return parsed;
+      if (isNaN(date.getTime())) {
+        return new Date();
       }
       
-      return new Date();
+      // เช็คว่าปีเป็น ค.ศ. หรือ พ.ศ.
+      const year = date.getFullYear();
+      
+      // ถ้าเป็น ค.ศ. (< 2500) ให้แปลงเป็น พ.ศ.
+      if (year < 2500) {
+        date.setFullYear(year + 543);
+      }
+      
+      return date;
     } catch (error) {
       console.error('Error parsing date:', dateStr, error);
       return new Date();

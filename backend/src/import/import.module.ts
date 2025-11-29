@@ -16,10 +16,11 @@ import { StatusSale } from '../entities/status-sale.entity';
 import { StatusJobDocument } from '../entities/status-job-document.entity';
 import { StatusJob } from '../entities/status-job.entity';
 import { JobOrder } from '../entities/job-order.entity';
-import { JobOrdersService } from '../job-orders/job-orders.service';
+import { JobOrdersModule } from '../job-orders/job-orders.module';
 
 @Module({
   imports: [
+    JobOrdersModule,
     TypeOrmModule.forFeature([
       Quotation,
       SaleMember,
@@ -41,6 +42,6 @@ import { JobOrdersService } from '../job-orders/job-orders.service';
     }),
   ],
   controllers: [ImportController],
-  providers: [ImportService, PdfParserService, JobOrdersService],
+  providers: [ImportService, PdfParserService],
 })
 export class ImportModule {}

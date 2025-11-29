@@ -37,16 +37,49 @@ export class ImportController {
   @Post('pdf')
   @UseInterceptors(FileInterceptor('file'))
   async parsePdf(@UploadedFile() file: Express.Multer.File) {
-    return this.pdfParserService.parsePdf(file.buffer);
+    const parsedData = await this.pdfParserService.parsePdf(file.buffer);
+    
+    // Return parsed data along with file info for later upload
+    return {
+      ...parsedData,
+      fileInfo: {
+        originalName: file.originalname,
+        size: file.size,
+        mimetype: file.mimetype,
+      },
+    };
   }
 
   @Post('pdf/save')
-  async savePdfData(@Body() data: any) {
+  @UseInterceptors(FileInterceptor('file'))
+  async savePdfData(
+    @Body('data') dataString: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
     try {
+      // Parse data from FormData
+      const data = JSON.parse(dataString);
+      
+      // Create job order first
       const jobOrder = await this.jobOrdersService.create(data);
+      
+      // If file is provided, upload it as Job PDF file
+      if (file && jobOrder.quotationNumber) {
+        try {
+          await this.jobOrdersService.uploadPdfFile(
+            jobOrder.id,
+            file,
+            'job'
+          );
+        } catch (uploadError) {
+          console.error('Failed to upload PDF file:', uploadError);
+          // Don't fail the whole operation if file upload fails
+        }
+      }
+      
       return {
         success: true,
-        message: 'บันทึก Job Order สำเร็จ',
+        message: 'บันทึก Job Order สำเร็จ' + (file ? ' พร้อมไฟล์ PDF' : ''),
         data: jobOrder,
       };
     } catch (error) {

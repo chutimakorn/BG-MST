@@ -20,28 +20,30 @@ interface ColumnMapping {
 const SYSTEM_FIELDS = [
   { value: 'quotationNumber', label: 'เลขที่ใบเสนอราคา', required: true },
   { value: 'customerName', label: 'ชื่อลูกค้า', required: true },
+  { value: 'requestDate', label: 'วันที่ได้รับต้องการ', required: false },
   { value: 'submissionDate', label: 'วันที่ส่งใบเสนอ', required: false },
-  { value: 'customerGroup', label: 'กลุ่มลูกค้า', required: false },
-  { value: 'saleMemberName', label: 'ผู้ขาย', required: false },
+  { value: 'customerGroup', label: 'G/NG', required: false },
+  { value: 'customerGroupName', label: 'กลุ่มลูกค้า', required: false },
+  { value: 'saleMemberName', label: 'ผู้ขาย/SALE', required: false },
   { value: 'customerCode', label: 'รหัสลูกค้า', required: false },
-  { value: 'categoryName', label: 'Category', required: false },
   { value: 'carName', label: 'รุ่นรถ', required: false },
-  { value: 'bodyColor', label: 'สี Body', required: false },
-  { value: 'seatColor', label: 'สี Seat', required: false },
-  { value: 'canopyColor', label: 'สี Canopy', required: false },
-  { value: 'additionalOptions', label: 'Option เพิ่มเติม', required: false },
-  { value: 'quantity', label: 'จำนวนคัน', required: false },
-  { value: 'pricePerUnit', label: 'ราคาต่อคัน', required: false },
-  { value: 'salesNote', label: 'หมายเหตุ', required: false },
-  { value: 'provinceName', label: 'จังหวัด', required: false },
-  { value: 'transportTrips', label: 'จำนวนเที่ยวขนส่ง', required: false },
-  { value: 'pricePerTrip', label: 'ราคาต่อเที่ยว', required: false },
-  { value: 'statusSaleName', label: 'สถานะการขาย', required: false },
-  { value: 'statusJobName', label: 'สถานะงาน', required: false },
-  { value: 'deliveryDate', label: 'วันส่งรถ', required: false },
-  { value: 'location', label: 'Location', required: false },
-  { value: 'coordinatorContact', label: 'ผู้ติดต่อประสานงาน', required: false },
-  { value: 'vehicleRecipient', label: 'ผู้ติดต่อรับรถ', required: false },
+  { value: 'additionalOptions', label: 'Option (เสนอเพิ่มเติม)', required: false },
+  { value: 'quantity', label: 'จำนวน/คัน', required: false },
+  { value: 'pricePerUnit', label: 'ราคาขาย รวม Vat', required: false },
+  { value: 'provinceName', label: 'จังหวัดขนส่ง', required: false },
+  { value: 'transportTrips', label: 'เที่ยวขนส่ง', required: false },
+  { value: 'pricePerTrip', label: 'ราคา/เที่ยว', required: false },
+  { value: 'paymentTerms', label: 'เงื่อนไขการชำระ', required: false },
+  { value: 'contactName', label: 'ชื่อผู้ติดต่อ', required: false },
+  { value: 'contactPhone', label: 'เบอร์ติดต่อ', required: false },
+  { value: 'contactEmail', label: 'E-Mail', required: false },
+  { value: 'stockStatus', label: 'สถานะเช็ครถในสต็อก', required: false },
+  { value: 'customerNotification', label: 'แจ้ง/นัดหมายลูกค้า', required: false },
+  { value: 'preDeliveryInspection', label: 'ผลตรวจเช็คก่อนส่งมอบ', required: false },
+  { value: 'serialCode', label: 'Serial / Code', required: false },
+  { value: 'remarkReason', label: 'หมายเหตุ / เหตุผล', required: false },
+  { value: 'status', label: 'สถานะ', required: false },
+  { value: 'postDeliveryNote', label: 'หมายเหตุ/สถานะหลังส่งมอบ', required: false },
 ]
 
 export default function ImportPage() {
@@ -62,26 +64,30 @@ export default function ImportPage() {
     
     if (col.includes('เลขที่') || col.includes('quotation') || col.includes('job no') || col === 'no.' || col === 'no') return 'quotationNumber'
     if (col.includes('ลูกค้า') || col.includes('customer') || col.includes('cutomer') || col.includes('บริษัท') || col.includes('company')) return 'customerName'
-    if (col.includes('วันที่') || col.includes('date') || col.includes('job date')) return 'submissionDate'
-    if (col.includes('กลุ่ม') || col.includes('group')) return 'customerGroup'
+    if (col.includes('ได้รับต้องการ') || col.includes('request date')) return 'requestDate'
+    if (col.includes('วันที่ส่ง') || col.includes('submission') || col.includes('วันที่') || col.includes('date')) return 'submissionDate'
+    if (col === 'g/ng' || col === 'gng') return 'customerGroup'
+    if (col.includes('กลุ่มลูกค้า') || col.includes('customer group')) return 'customerGroupName'
     if (col.includes('ผู้ขาย') || col === 'sale' || col === 'sales') return 'saleMemberName'
-    if (col.includes('รหัส') || col.includes('code')) return 'customerCode'
-    if (col.includes('category') || col.includes('ประเภท')) return 'categoryName'
+    if (col.includes('รหัสลูกค้า') || col.includes('customer code')) return 'customerCode'
     if (col.includes('รุ่น') || col === 'model' || col.includes('รถ') || col.includes('car')) return 'carName'
-    if (col.includes('body') || col.includes('ตัวรถ')) return 'bodyColor'
-    if (col.includes('seat') || col.includes('เบาะ')) return 'seatColor'
-    if (col.includes('canopy') || col.includes('หลังคา')) return 'canopyColor'
-    if (col.includes('option') || col.includes('ออฟชั่น')) return 'additionalOptions'
+    if (col.includes('option') || col.includes('ออฟชั่น') || col.includes('เพิ่มเติม')) return 'additionalOptions'
     if (col.includes('จำนวน') || col === 'qty' || col === 'quantity') return 'quantity'
-    if (col.includes('ราคา') || col.includes('price')) return 'pricePerUnit'
-    if (col.includes('หมายเหตุ') || col.includes('remark') || col.includes('note')) return 'salesNote'
+    if (col.includes('ราคาขาย') || col.includes('ราคา') || col.includes('price') || col.includes('vat')) return 'pricePerUnit'
     if (col.includes('จังหวัด') || col.includes('province')) return 'provinceName'
-    if (col.includes('เที่ยว') || col.includes('trip')) return 'transportTrips'
-    if (col.includes('สถานะ') || col === 'status') return 'statusSaleName'
-    if (col.includes('ส่งรถ') || col.includes('delivery')) return 'deliveryDate'
-    if (col === 'location' || col.includes('สถานที่')) return 'location'
-    if (col.includes('ประสานงาน') || col.includes('coordinator')) return 'coordinatorContact'
-    if (col.includes('รับรถ') || col.includes('recipient')) return 'vehicleRecipient'
+    if (col.includes('เที่ยวขนส่ง') || col.includes('เที่ยว') || col.includes('trip')) return 'transportTrips'
+    if (col.includes('ราคา/เที่ยว') || col.includes('ค่าขนส่ง')) return 'pricePerTrip'
+    if (col.includes('เงื่อนไข') || col.includes('payment')) return 'paymentTerms'
+    if (col.includes('ผู้ติดต่อ') || col.includes('contact name')) return 'contactName'
+    if (col.includes('เบอร์') || col.includes('phone') || col.includes('tel')) return 'contactPhone'
+    if (col.includes('email') || col.includes('e-mail') || col.includes('อีเมล')) return 'contactEmail'
+    if (col.includes('สต็อก') || col.includes('stock')) return 'stockStatus'
+    if (col.includes('นัดหมาย') || col.includes('แจ้ง')) return 'customerNotification'
+    if (col.includes('ตรวจเช็ค') || col.includes('inspection')) return 'preDeliveryInspection'
+    if (col.includes('serial') || col.includes('code')) return 'serialCode'
+    if (col.includes('หมายเหตุ') && (col.includes('เหตุผล') || col.includes('reason'))) return 'remarkReason'
+    if (col.includes('สถานะ') || col === 'status') return 'status'
+    if (col.includes('หมายเหตุ') || col.includes('note') || col.includes('remark')) return 'postDeliveryNote'
     
     return ''
   }

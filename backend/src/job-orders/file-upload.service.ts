@@ -46,6 +46,27 @@ export class FileUploadService {
   }
 
   async getFilePath(relativePath: string): Promise<string> {
+    // Check if it's already a URL (Cloudinary)
+    if (relativePath.startsWith('http://') || relativePath.startsWith('https://')) {
+      return relativePath;
+    }
+    
+    // Try to parse as JSON (Cloudinary format with metadata)
+    try {
+      const fileInfo = JSON.parse(relativePath);
+      if (fileInfo.publicId) {
+        // Generate signed URL through CloudinaryService
+        // For now, return the direct URL (will be handled by frontend)
+        return fileInfo.url || '';
+      }
+      if (fileInfo.url) {
+        return fileInfo.url;
+      }
+    } catch (error) {
+      // Not JSON, continue
+    }
+    
+    // For local files, return the local path
     const basePath = await this.settingsService.getFileUploadPath();
     return path.join(basePath, relativePath);
   }

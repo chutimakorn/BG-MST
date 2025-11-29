@@ -6,7 +6,12 @@ export class PdfParserService {
   async parsePdf(buffer: Buffer): Promise<any> {
     try {
       const data = await pdf(buffer);
-      const text = data.text;
+      let text = data.text;
+
+      // Clean text - ลบ null bytes และ invalid characters
+      text = text.replace(/\0/g, ''); // ลบ null bytes
+      text = text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, ''); // ลบ control characters
+      text = text.trim();
 
       // ดึงข้อมูลจาก PDF text
       const extracted = this.extractJobOrderData(text);
@@ -119,16 +124,16 @@ export class PdfParserService {
   }
 
   private convertThaiDate(dateStr: string): string {
-    // แปลง DD/MM/YYYY (พ.ศ.) เป็น YYYY-MM-DD (ค.ศ.)
+    // แปลง DD/MM/YYYY เป็น YYYY-MM-DD และเก็บเป็น พ.ศ. ในฐานข้อมูล
     const parts = dateStr.split('/');
     if (parts.length === 3) {
       let day = parts[0].padStart(2, '0');
       let month = parts[1].padStart(2, '0');
       let year = parseInt(parts[2]);
 
-      // แปลง พ.ศ. เป็น ค.ศ.
-      if (year > 2500) {
-        year = year - 543;
+      // ถ้าเป็น ค.ศ. (< 2500) ให้แปลงเป็น พ.ศ.
+      if (year < 2500) {
+        year = year + 543;
       }
 
       return `${year}-${month}-${day}`;

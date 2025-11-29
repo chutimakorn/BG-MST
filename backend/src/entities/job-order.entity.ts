@@ -59,13 +59,17 @@ export class JobOrder {
   @JoinColumn()
   statusJob: StatusJob; // status
 
+  // Job PDF Section (from import)
+  @Column({ type: 'text', nullable: true })
+  jobPdfFileName: string; // ชื่อไฟล์ Job PDF ที่ import มา (JSON string with Cloudinary info)
+
   // PO Section
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  poFileName: string; // ชื่อไฟล์ PO
+  @Column({ type: 'text', nullable: true })
+  poFileName: string; // ชื่อไฟล์ PO (JSON string with Cloudinary info)
 
   // IV (ใบกำกับภาษี) Section
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  ivFileName: string; // ชื่อไฟล์ใบกำกับภาษี
+  @Column({ type: 'text', nullable: true })
+  ivFileName: string; // ชื่อไฟล์ใบกำกับภาษี (JSON string with Cloudinary info)
 
   @Column({ type: 'date', nullable: true })
   ivDate: Date; // วันที่ใบกำกับภาษี (พ.ศ.)
@@ -74,14 +78,18 @@ export class JobOrder {
   ivAmount: number; // ยอดใบกำกับภาษี
 
   // IT Section
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  itFileName: string; // ชื่อไฟล์ IT
+  @Column({ type: 'text', nullable: true })
+  itFileName: string; // ชื่อไฟล์ IT (JSON string with Cloudinary info)
 
   @Column({ type: 'date', nullable: true })
   itDate: Date; // วันที่ IT (พ.ศ.)
 
   @Column({ type: 'decimal', precision: 15, scale: 2, nullable: true })
   itAmount: number; // ยอด IT
+
+  // DV Section
+  @Column({ type: 'text', nullable: true })
+  dvFileName: string; // ชื่อไฟล์ DV (JSON string with Cloudinary info)
 
   @CreateDateColumn()
   createdAt: Date;

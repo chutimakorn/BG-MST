@@ -8,6 +8,7 @@ import { SeatColor } from '../entities/seat-color.entity';
 import { CanopyColor } from '../entities/canopy-color.entity';
 import { StatusJobDocument } from '../entities/status-job-document.entity';
 import { StatusJob } from '../entities/status-job.entity';
+import { CloudinaryService } from './cloudinary.service';
 
 @Injectable()
 export class JobOrdersService {
@@ -26,20 +27,53 @@ export class JobOrdersService {
     private statusJobDocumentRepository: Repository<StatusJobDocument>,
     @InjectRepository(StatusJob)
     private statusJobRepository: Repository<StatusJob>,
+    private cloudinaryService: CloudinaryService,
   ) {}
 
-  async findAll(): Promise<JobOrder[]> {
-    return this.jobOrderRepository.find({
-      relations: [
-        'car',
-        'bodyColor',
-        'seatColor',
-        'canopyColor',
-        'statusJobDocument',
-        'statusJob',
-      ],
-      order: { createdAt: 'DESC' },
-    });
+  async findAll(filters?: any): Promise<any> {
+    const page = parseInt(filters?.page) || 1;
+    const limit = parseInt(filters?.limit) || 50;
+    const skip = (page - 1) * limit;
+    const sortBy = filters?.sortBy || 'createdAt';
+    const sortOrder = filters?.sortOrder?.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+
+    const query = this.jobOrderRepository.createQueryBuilder('j')
+      .leftJoinAndSelect('j.car', 'car')
+      .leftJoinAndSelect('j.bodyColor', 'bodyColor')
+      .leftJoinAndSelect('j.seatColor', 'seatColor')
+      .leftJoinAndSelect('j.canopyColor', 'canopyColor')
+      .leftJoinAndSelect('j.statusJobDocument', 'statusJobDocument')
+      .leftJoinAndSelect('j.statusJob', 'statusJob');
+
+    // Search ทั้งเลขที่และชื่อลูกค้าพร้อมกัน (OR condition)
+    if (filters?.quotationNumber || filters?.customerName) {
+      const searchTerm = filters?.quotationNumber || filters?.customerName || '';
+      query.andWhere(
+        '(LOWER(j.quotationNumber) LIKE LOWER(:search) OR LOWER(j.customerName) LIKE LOWER(:search))',
+        { search: `%${searchTerm}%` }
+      );
+    }
+
+    // Sorting
+    const validSortFields = ['createdAt', 'quotationNumber', 'customerName', 'submissionDate', 'deliveryDate'];
+    const sortField = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    query.orderBy(`j.${sortField}`, sortOrder);
+
+    // Get total count
+    const total = await query.getCount();
+
+    // Apply pagination
+    const data = await query.skip(skip).take(limit).getMany();
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: number): Promise<JobOrder> {
@@ -142,6 +176,9 @@ export class JobOrdersService {
     if (data.itDate !== undefined) jobOrder.itDate = data.itDate;
     if (data.itAmount !== undefined) jobOrder.itAmount = data.itAmount;
 
+    // DV Section
+    if (data.dvFileName !== undefined) jobOrder.dvFileName = data.dvFileName;
+
     // Update relations if provided
     if (data.carId) {
       const car = await this.carRepository.findOne({ where: { id: data.carId } });
@@ -181,5 +218,72 @@ export class JobOrdersService {
     if (result.affected === 0) {
       throw new NotFoundException(`Job Order with ID ${id} not found`);
     }
+  }
+
+  async uploadPdfFile(
+    id: number,
+    file: Express.Multer.File,
+    fileType: 'job' | 'po' | 'iv' | 'it' | 'dv',
+  ): Promise<void> {
+    const jobOrder = await this.findOne(id);
+    
+    // Upload to Cloudinary
+    const fileName = await this.cloudinaryService.uploadFile(
+      jobOrder.quotationNumber,
+      file,
+      fileType,
+    );
+    
+    // Update job order with file name
+    const updateData: any = {};
+    if (fileType === 'job') updateData.jobPdfFileName = fileName;
+    if (fileType === 'po') updateData.poFileName = fileName;
+    if (fileType === 'iv') updateData.ivFileName = fileName;
+    if (fileType === 'it') updateData.itFileName = fileName;
+    if (fileType === 'dv') updateData.dvFileName = fileName;
+    
+    await this.jobOrderRepository.update(id, updateData);
+  }
+
+  async deleteFile(id: number, fileType: 'po' | 'iv' | 'it' | 'dv'): Promise<any> {
+    const jobOrder = await this.findOne(id);
+    
+    let fileName: string | null = null;
+    const updateData: any = {};
+
+    // Get file name based on type
+    if (fileType === 'po') {
+      fileName = jobOrder.poFileName;
+      updateData.poFileName = null;
+    } else if (fileType === 'iv') {
+      fileName = jobOrder.ivFileName;
+      updateData.ivFileName = null;
+    } else if (fileType === 'it') {
+      fileName = jobOrder.itFileName;
+      updateData.itFileName = null;
+    } else if (fileType === 'dv') {
+      fileName = jobOrder.dvFileName;
+      updateData.dvFileName = null;
+    }
+
+    if (!fileName) {
+      throw new NotFoundException(`No ${fileType.toUpperCase()} file found for this Job Order`);
+    }
+
+    // Try to delete from Cloudinary
+    try {
+      await this.cloudinaryService.deleteFile(fileName);
+    } catch (error) {
+      console.error('Failed to delete from Cloudinary:', error);
+      // Continue anyway to update database
+    }
+
+    // Update database
+    await this.jobOrderRepository.update(id, updateData);
+
+    return {
+      success: true,
+      message: `ลบไฟล์ ${fileType.toUpperCase()} สำเร็จ`,
+    };
   }
 }
