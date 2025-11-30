@@ -21,7 +21,7 @@ import { useState } from 'react'
 
 const menuItems = [
   {
-    title: 'Dashboard',
+    title: 'Home',
     href: '/dashboard',
     icon: LayoutDashboard,
   },
