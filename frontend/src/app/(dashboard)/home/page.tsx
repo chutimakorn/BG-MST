@@ -22,7 +22,7 @@ export default function HomePage() {
     if (userData) {
       setUser(JSON.parse(userData))
     }
-  }, [router])
+  }, []) // ลบ router ออกจาก dependencies
 
   const handleGiftClick = () => {
     // Show fireworks animation

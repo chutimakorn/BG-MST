@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
 import { LogIn } from 'lucide-react'
@@ -12,6 +12,14 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // เช็คว่า login แล้วหรือยัง
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      router.replace('/home')
+    }
+  }, [])
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -21,7 +29,7 @@ export default function LoginPage() {
       const response = await api.post('/auth/login', { username, password })
       localStorage.setItem('token', response.data.access_token)
       localStorage.setItem('user', JSON.stringify(response.data.user))
-      router.push('/dashboard')
+      router.push('/home')
     } catch (err: any) {
       setError(err.response?.data?.message || 'เข้าสู่ระบบไม่สำเร็จ')
     } finally {

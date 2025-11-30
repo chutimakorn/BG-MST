@@ -11,23 +11,23 @@ async function bootstrap() {
   app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
   
   // CORS configuration - รองรับหลาย origins
-  const allowedOrigins = [
-    'http://localhost:3000',
-    process.env.FRONTEND_URL,
-  ].filter(Boolean); // กรองค่า undefined ออก
-
   app.enableCors({
     origin: (origin, callback) => {
       // อนุญาตให้ไม่มี origin (เช่น mobile apps, Postman)
       if (!origin) return callback(null, true);
+      
+      // อนุญาต localhost ทุก port
+      if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+        return callback(null, true);
+      }
       
       // อนุญาต Vercel preview/production URLs
       if (origin.endsWith('.vercel.app')) {
         return callback(null, true);
       }
       
-      // ตรวจสอบ allowed origins
-      if (allowedOrigins.includes(origin)) {
+      // อนุญาต FRONTEND_URL ที่กำหนดใน env
+      if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
         return callback(null, true);
       }
       

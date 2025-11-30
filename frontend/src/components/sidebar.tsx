@@ -22,7 +22,7 @@ import { useState } from 'react'
 const menuItems = [
   {
     title: 'Home',
-    href: '/dashboard',
+    href: '/home',
     icon: LayoutDashboard,
   },
   {
@@ -93,7 +93,7 @@ export default function Sidebar() {
       {/* SIDEBAR HEADER */}
       <div className="flex items-center justify-between gap-2 border-b border-stroke px-6 py-5.5 dark:border-strokedark lg:py-6.5">
         {sidebarOpen && (
-          <Link href="/dashboard">
+          <Link href="/home">
             <h1 className="text-2xl font-bold text-black dark:text-white">BG-MST</h1>
           </Link>
         )}
