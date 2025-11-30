@@ -6,6 +6,7 @@ import api from '@/lib/api'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { ArrowLeft, Eye, X, Upload, Download } from 'lucide-react'
 import Link from 'next/link'
+import { showError, showInfo } from '@/lib/toast-helper'
 
 export default function JobOrderDetailPage() {
   const router = useRouter()
@@ -14,6 +15,7 @@ export default function JobOrderDetailPage() {
   
   const [loading, setLoading] = useState(true)
   const [jobOrder, setJobOrder] = useState<any>(null)
+  const [linkedQuotation, setLinkedQuotation] = useState<any>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewFileName, setPreviewFileName] = useState<string>('')
 
@@ -30,7 +32,7 @@ export default function JobOrderDetailPage() {
 
   const handleViewFile = async (fileName: string) => {
     if (!fileName) {
-      alert('ไม่มีไฟล์')
+      showInfo('ไม่มีไฟล์')
       return
     }
     
@@ -57,7 +59,7 @@ export default function JobOrderDetailPage() {
         }
       } catch (error) {
         console.error('Error getting file URL:', error)
-        alert('เกิดข้อผิดพลาดในการเปิดไฟล์')
+        showError('เกิดข้อผิดพลาดในการเปิดไฟล์')
         return
       }
     }
@@ -66,7 +68,7 @@ export default function JobOrderDetailPage() {
       setPreviewUrl(fileUrl)
       setPreviewFileName(getDisplayFileName(fileName))
     } else {
-      alert('ไม่สามารถเปิดไฟล์ได้')
+      showError('ไม่สามารถเปิดไฟล์ได้')
     }
   }
 
@@ -109,6 +111,20 @@ export default function JobOrderDetailPage() {
     try {
       const response = await api.get(`/job-orders/${jobOrderId}`)
       setJobOrder(response.data)
+      
+      // เช็คว่ามี quotation ที่เชื่อมโยงหรือไม่
+      if (response.data.id) {
+        try {
+          const quotationsRes = await api.get('/quotations')
+          const quotations = quotationsRes.data.data || quotationsRes.data || []
+          const linkedQuot = quotations.find((q: any) => q.jobOrder?.id === response.data.id)
+          if (linkedQuot) {
+            setLinkedQuotation(linkedQuot)
+          }
+        } catch (error) {
+          console.error('Failed to load linked quotation', error)
+        }
+      }
     } catch (error) {
       console.error('Failed to load job order', error)
     } finally {
@@ -155,6 +171,29 @@ export default function JobOrderDetailPage() {
           ย้อนกลับ
         </Link>
       </div>
+
+      {/* Linked Quotation Alert */}
+      {linkedQuotation && (
+        <div className="mb-6 rounded-lg border-l-4 border-primary bg-primary bg-opacity-10 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-black dark:text-white">
+                Job Order นี้เชื่อมโยงกับใบเสนอราคา
+              </p>
+              <p className="mt-1 text-sm text-body">
+                เลขที่: {linkedQuotation.quotationNumber} | ลูกค้า: {linkedQuotation.customerName}
+              </p>
+            </div>
+            <Link
+              href={`/quotations/${linkedQuotation.id}`}
+              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-white hover:bg-opacity-90"
+            >
+              <Eye className="h-4 w-4" />
+              ดูใบเสนอราคา
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-6">
         {/* ข้อมูลพื้นฐาน */}

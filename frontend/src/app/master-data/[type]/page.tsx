@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import api from '@/lib/api'
 import { Plus, Edit, Trash2, Database } from 'lucide-react'
+import { showSuccess, showError } from '@/lib/toast-helper'
 
 const TYPE_LABELS: { [key: string]: string } = {
   'cars': 'รุ่นรถ',
@@ -54,8 +55,9 @@ export default function MasterDataTypePage() {
       await api.post(`/master-data/${type}`, { name: newItemName })
       setNewItemName('')
       loadData()
+      showSuccess('เพิ่มข้อมูลสำเร็จ')
     } catch (error: any) {
-      alert('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message))
+      showError('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message))
     } finally {
       setLoading(false)
     }
@@ -69,8 +71,9 @@ export default function MasterDataTypePage() {
       setEditingId(null)
       setEditingName('')
       loadData()
+      showSuccess('แก้ไขข้อมูลสำเร็จ')
     } catch (error: any) {
-      alert('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message))
+      showError('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message))
     } finally {
       setLoading(false)
     }
@@ -82,8 +85,9 @@ export default function MasterDataTypePage() {
     try {
       await api.delete(`/master-data/${type}/${id}`)
       loadData()
+      showSuccess('ลบข้อมูลสำเร็จ')
     } catch (error: any) {
-      alert('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message))
+      showError('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message))
     } finally {
       setLoading(false)
     }
@@ -96,7 +100,7 @@ export default function MasterDataTypePage() {
       const token = localStorage.getItem('token')
       
       if (!token) {
-        alert('กรุณา login ใหม่')
+        showError('กรุณา login ใหม่')
         router.push('/login')
         return
       }
@@ -114,11 +118,11 @@ export default function MasterDataTypePage() {
         throw new Error(errorData.message || 'Failed to initialize')
       }
       
-      alert('เริ่มต้นข้อมูลสำเร็จ')
+      showSuccess('เริ่มต้นข้อมูลสำเร็จ')
       loadData()
     } catch (error: any) {
       console.error('Initialize error:', error)
-      alert('เกิดข้อผิดพลาด: ' + error.message)
+      showError('เกิดข้อผิดพลาด: ' + error.message)
     } finally {
       setLoading(false)
     }

@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import api from '@/lib/api'
-import { ArrowLeft, Save, Search, X } from 'lucide-react'
+import { ArrowLeft, Save, Search, X, Plus, Edit, FileUp } from 'lucide-react'
 import Link from 'next/link'
+import { showSuccess, showError } from '@/lib/toast-helper'
 
 export default function EditQuotationPage() {
   const router = useRouter()
@@ -18,6 +19,10 @@ export default function EditQuotationPage() {
   const [selectedJobOrder, setSelectedJobOrder] = useState<any>(null)
   const [jobOrderSearch, setJobOrderSearch] = useState('')
   const [showJobOrderDropdown, setShowJobOrderDropdown] = useState(false)
+  const [showPdfModal, setShowPdfModal] = useState(false)
+  const [pdfFile, setPdfFile] = useState<File | null>(null)
+  const [pdfUploading, setPdfUploading] = useState(false)
+  const [pdfData, setPdfData] = useState<any>(null)
   
   const [formData, setFormData] = useState({
     jobOrderId: '',
@@ -109,7 +114,7 @@ export default function EditQuotationPage() {
       }
     } catch (error) {
       console.error('Failed to load data', error)
-      alert('ไม่สามารถโหลดข้อมูลได้')
+      showError('ไม่สามารถโหลดข้อมูลได้')
     } finally {
       setDataLoading(false)
     }
@@ -164,10 +169,10 @@ export default function EditQuotationPage() {
       }
 
       await api.put(`/quotations/${quotationId}`, submitData)
-      alert('แก้ไขใบเสนอราคาสำเร็จ')
+      showSuccess('แก้ไขใบเสนอราคาสำเร็จ')
       router.push('/quotations')
     } catch (error: any) {
-      alert('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message))
+      showError('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message))
     } finally {
       setLoading(false)
     }
@@ -194,6 +199,67 @@ export default function EditQuotationPage() {
     jo.quotationNumber?.toLowerCase().includes(jobOrderSearch.toLowerCase()) ||
     jo.customerName?.toLowerCase().includes(jobOrderSearch.toLowerCase())
   )
+
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setPdfFile(file)
+    setPdfUploading(true)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await api.post('/import/pdf', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+
+      setPdfData(response.data)
+      setShowPdfModal(true)
+    } catch (error: any) {
+      showError('เกิดข้อผิดพลาดในการอ่านไฟล์ PDF: ' + (error.response?.data?.message || error.message))
+    } finally {
+      setPdfUploading(false)
+    }
+  }
+
+  const handleCreateJobOrder = async () => {
+    if (!pdfData) return
+
+    setPdfUploading(true)
+    try {
+      // สร้าง Job Order จากข้อมูล PDF
+      const jobOrderData = {
+        ...pdfData,
+        quotationId: quotationId, // เชื่อมโยงกับใบเสนอราคานี้
+      }
+
+      const response = await api.post('/import/pdf/save', jobOrderData)
+      const newJobOrder = response.data
+
+      // อัพเดทใบเสนอราคาให้เชื่อมโยงกับ Job Order ใหม่
+      await api.put(`/quotations/${quotationId}`, {
+        ...formData,
+        jobOrder: newJobOrder.id,
+      })
+
+      showSuccess('สร้าง Job Order สำเร็จ!')
+      setShowPdfModal(false)
+      setPdfData(null)
+      setPdfFile(null)
+      
+      // Reload data
+      await loadData()
+      
+      // ไปหน้าแก้ไข Job Order ที่สร้างใหม่
+      router.push(`/job-orders/${newJobOrder.id}/edit`)
+    } catch (error: any) {
+      showError('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message))
+    } finally {
+      setPdfUploading(false)
+    }
+  }
 
   const totals = calculateTotals(formData)
 
@@ -344,14 +410,29 @@ export default function EditQuotationPage() {
       {/* Job Order Selection Section - ด้านล่าง */}
       <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="border-b border-stroke px-6.5 py-4 dark:border-strokedark">
-          <h3 className="font-medium text-black dark:text-white">
-            เชื่อมโยงกับ Job Order (ถ้ามี)
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="font-medium text-black dark:text-white">
+              เชื่อมโยงกับ Job Order (ถ้ามี)
+            </h3>
+            {!selectedJobOrder && (
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 py-2 text-white hover:bg-opacity-90">
+                <Plus className="h-5 w-5" />
+                <span>สร้าง Job Order จาก PDF</span>
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={handlePdfUpload}
+                  className="hidden"
+                  disabled={pdfUploading}
+                />
+              </label>
+            )}
+          </div>
         </div>
         <div className="p-6.5">
           <div className="relative">
             <label className="mb-2.5 block font-medium text-black dark:text-white">
-              ค้นหา Job Order
+              ค้นหา Job Order ที่มีอยู่แล้ว
             </label>
             <div className="relative">
               <input
@@ -395,13 +476,22 @@ export default function EditQuotationPage() {
               <h3 className="font-medium text-black dark:text-white">
                 ข้อมูล Job Order ที่เชื่อมโยง
               </h3>
-              <button
-                type="button"
-                onClick={handleClearJobOrder}
-                className="text-meta-1 hover:text-meta-1/80"
-              >
-                <X className="h-5 w-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/job-orders/${selectedJobOrder.id}/edit`}
+                  className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-white hover:bg-opacity-90"
+                >
+                  <Edit className="h-4 w-4" />
+                  แก้ไข Job Order
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleClearJobOrder}
+                  className="text-meta-1 hover:text-meta-1/80"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
             </div>
           </div>
           <div className="p-6.5">
@@ -464,6 +554,68 @@ export default function EditQuotationPage() {
           {loading ? 'กำลังบันทึก...' : 'บันทึกการแก้ไข'}
         </button>
       </div>
+
+      {/* PDF Upload Modal */}
+      {showPdfModal && pdfData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 dark:bg-boxdark">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-xl font-semibold text-black dark:text-white">
+                ตรวจสอบข้อมูลจาก PDF
+              </h3>
+              <button
+                onClick={() => {
+                  setShowPdfModal(false)
+                  setPdfData(null)
+                  setPdfFile(null)
+                }}
+                className="text-body hover:text-black dark:hover:text-white"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="rounded-lg bg-gray-2 p-4 dark:bg-meta-4">
+                <p className="mb-1 text-sm text-body">เลขที่ใบสั่งงาน</p>
+                <p className="font-semibold text-black dark:text-white">{pdfData.quotationNumber || '-'}</p>
+              </div>
+              <div className="rounded-lg bg-gray-2 p-4 dark:bg-meta-4">
+                <p className="mb-1 text-sm text-body">ชื่อลูกค้า</p>
+                <p className="font-semibold text-black dark:text-white">{pdfData.customerName || '-'}</p>
+              </div>
+              <div className="rounded-lg bg-gray-2 p-4 dark:bg-meta-4">
+                <p className="mb-1 text-sm text-body">รหัสลูกค้า</p>
+                <p className="font-semibold text-black dark:text-white">{pdfData.customerCode || '-'}</p>
+              </div>
+              <div className="rounded-lg bg-gray-2 p-4 dark:bg-meta-4">
+                <p className="mb-1 text-sm text-body">จำนวน</p>
+                <p className="font-semibold text-black dark:text-white">{pdfData.quantity || 0} คัน</p>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                onClick={() => {
+                  setShowPdfModal(false)
+                  setPdfData(null)
+                  setPdfFile(null)
+                }}
+                className="flex-1 rounded-lg border border-stroke px-6 py-3 font-medium hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={handleCreateJobOrder}
+                disabled={pdfUploading}
+                className="flex-1 rounded-lg bg-primary px-6 py-3 font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+              >
+                {pdfUploading ? 'กำลังสร้าง...' : 'สร้าง Job Order'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

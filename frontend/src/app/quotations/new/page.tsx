@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
 import { ArrowLeft, Save } from 'lucide-react'
 import Link from 'next/link'
+import { showSuccess, showError } from '@/lib/toast-helper'
 
 export default function NewQuotationPage() {
   const router = useRouter()
@@ -112,10 +113,10 @@ export default function NewQuotationPage() {
       }
 
       await api.post('/quotations', submitData)
-      alert('สร้างใบเสนอราคาสำเร็จ')
+      showSuccess('สร้างใบเสนอราคาสำเร็จ')
       router.push('/quotations')
     } catch (error: any) {
-      alert('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message))
+      showError('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message))
     } finally {
       setLoading(false)
     }

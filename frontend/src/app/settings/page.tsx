@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
 import { Save, Cloud } from 'lucide-react'
+import { showSuccess, showError, showWarning } from '@/lib/toast-helper'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -53,7 +54,7 @@ export default function SettingsPage() {
     setLoading(true)
     try {
       if (!cloudinaryCloudName || !cloudinaryApiKey || !cloudinaryApiSecret) {
-        alert('กรุณากรอกข้อมูลให้ครบทุกช่อง')
+        showWarning('กรุณากรอกข้อมูลให้ครบทุกช่อง')
         setLoading(false)
         return
       }
@@ -76,10 +77,10 @@ export default function SettingsPage() {
         description: 'Cloudinary API Secret',
       })
       
-      alert('บันทึกการตั้งค่าสำเร็จ')
+      showSuccess('บันทึกการตั้งค่าสำเร็จ')
       await loadSettings()
     } catch (error: any) {
-      alert('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message))
+      showError('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message))
     } finally {
       setLoading(false)
     }

@@ -5,6 +5,7 @@ import { Providers } from './providers'
 import { ThemeProvider } from '@/components/theme-provider'
 import DashboardLayoutWrapper from '@/components/dashboard-layout-wrapper'
 import AuthGuard from '@/components/auth-guard'
+import { ToastProvider } from '@/components/toast-container'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -28,9 +29,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Providers>
-            <AuthGuard>
-              <DashboardLayoutWrapper>{children}</DashboardLayoutWrapper>
-            </AuthGuard>
+            <ToastProvider>
+              <AuthGuard>
+                <DashboardLayoutWrapper>{children}</DashboardLayoutWrapper>
+              </AuthGuard>
+            </ToastProvider>
           </Providers>
         </ThemeProvider>
       </body>

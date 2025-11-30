@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
 import { Plus, Edit2, Trash2, X } from 'lucide-react'
+import { showSuccess, showError } from '@/lib/toast-helper'
 
 export default function UsersPage() {
   const router = useRouter()
@@ -89,8 +90,9 @@ export default function UsersPage() {
       }
       handleCloseModal()
       loadUsers()
+      showSuccess(editingUser ? 'แก้ไขผู้ใช้สำเร็จ' : 'สร้างผู้ใช้สำเร็จ')
     } catch (error: any) {
-      alert(error.response?.data?.message || 'เกิดข้อผิดพลาด')
+      showError(error.response?.data?.message || 'เกิดข้อผิดพลาด')
     }
   }
 
@@ -100,8 +102,9 @@ export default function UsersPage() {
     try {
       await api.delete(`/users/${id}`)
       loadUsers()
+      showSuccess('ลบผู้ใช้สำเร็จ')
     } catch (error) {
-      alert('ไม่สามารถลบผู้ใช้ได้')
+      showError('ไม่สามารถลบผู้ใช้ได้')
     }
   }
 

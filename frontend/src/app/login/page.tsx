@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
 import { LogIn } from 'lucide-react'
+import { useToast } from '@/components/toast-container'
 
 export default function LoginPage() {
   const router = useRouter()
+  const { showToast } = useToast()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -29,9 +31,12 @@ export default function LoginPage() {
       const response = await api.post('/auth/login', { username, password })
       localStorage.setItem('token', response.data.access_token)
       localStorage.setItem('user', JSON.stringify(response.data.user))
+      showToast('เข้าสู่ระบบสำเร็จ', 'success')
       router.push('/home')
     } catch (err: any) {
-      setError(err.response?.data?.message || 'เข้าสู่ระบบไม่สำเร็จ')
+      const errorMsg = err.response?.data?.message || 'เข้าสู่ระบบไม่สำเร็จ'
+      setError(errorMsg)
+      showToast(errorMsg, 'error')
     } finally {
       setLoading(false)
     }

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { FileText, Upload, Save, X, AlertCircle } from 'lucide-react'
+import { showSuccess } from '@/lib/toast-helper'
 
 export default function ImportPdfPage() {
   const router = useRouter()
@@ -147,7 +148,7 @@ export default function ImportPdfPage() {
 
       const result = await response.json()
       if (result.success) {
-        alert('บันทึก Job Order สำเร็จ!')
+        showSuccess('บันทึก Job Order สำเร็จ!')
         router.push('/job-orders')
       } else {
         throw new Error(result.message)

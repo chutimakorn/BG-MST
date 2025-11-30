@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Upload, FileSpreadsheet, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { showSuccess } from '@/lib/toast-helper'
 
 interface Record {
   rowNumber: number
@@ -242,7 +243,7 @@ export default function ImportPage() {
         systemField: autoMapColumn(m.excelColumn)
       }))
       setColumnMappings(mappings)
-      alert('ล้างการบันทึก mapping สำเร็จ')
+      showSuccess('ล้างการบันทึก mapping สำเร็จ')
     } catch (error) {
       console.error('Failed to clear mappings:', error)
     }

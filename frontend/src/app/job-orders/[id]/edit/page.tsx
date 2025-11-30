@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import api from '@/lib/api'
 import { ArrowLeft, Save, Upload, FileText, Eye, Trash2, X, Download } from 'lucide-react'
 import Link from 'next/link'
+import { showSuccess, showError, showInfo } from '@/lib/toast-helper'
 
 export default function EditJobOrderPage() {
   const router = useRouter()
@@ -15,6 +16,7 @@ export default function EditJobOrderPage() {
   const [dataLoading, setDataLoading] = useState(true)
   const [uploadingFile, setUploadingFile] = useState<string | null>(null)
   const [masterData, setMasterData] = useState<any>({})
+  const [linkedQuotation, setLinkedQuotation] = useState<any>(null)
   
   const [formData, setFormData] = useState({
     quotationNumber: '',
@@ -74,6 +76,21 @@ export default function EditJobOrderPage() {
       })
 
       const jo = jobOrder.data
+      
+      // เช็คว่ามี quotation ที่เชื่อมโยงหรือไม่
+      if (jo.id) {
+        try {
+          const quotationsRes = await api.get('/quotations')
+          const quotations = quotationsRes.data.data || quotationsRes.data || []
+          const linkedQuot = quotations.find((q: any) => q.jobOrder?.id === jo.id)
+          if (linkedQuot) {
+            setLinkedQuotation(linkedQuot)
+          }
+        } catch (error) {
+          console.error('Failed to load linked quotation', error)
+        }
+      }
+      
       setFormData({
         quotationNumber: jo.quotationNumber || '',
         customerName: jo.customerName || '',
@@ -102,7 +119,7 @@ export default function EditJobOrderPage() {
       })
     } catch (error) {
       console.error('Failed to load data', error)
-      alert('ไม่สามารถโหลดข้อมูลได้')
+      showError('ไม่สามารถโหลดข้อมูลได้')
     } finally {
       setDataLoading(false)
     }
@@ -139,10 +156,10 @@ export default function EditJobOrderPage() {
       }
 
       await api.put(`/job-orders/${jobOrderId}`, submitData)
-      alert('แก้ไข Job Order สำเร็จ')
+      showSuccess('แก้ไข Job Order สำเร็จ')
       router.push('/job-orders')
     } catch (error: any) {
-      alert('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message))
+      showError('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message))
     } finally {
       setLoading(false)
     }
@@ -183,10 +200,10 @@ export default function EditJobOrderPage() {
       if (fileType === 'dv') handleChange('dvFileName', result.fileName)
       if (fileType === 'job') handleChange('jobPdfFileName', result.fileName)
 
-      alert('อัพโหลดไฟล์สำเร็จ')
+      showSuccess('อัพโหลดไฟล์สำเร็จ')
       await loadData() // Reload data
     } catch (error: any) {
-      alert('เกิดข้อผิดพลาด: ' + error.message)
+      showError('เกิดข้อผิดพลาด: ' + error.message)
     } finally {
       setUploadingFile(null)
     }
@@ -208,10 +225,10 @@ export default function EditJobOrderPage() {
       if (fileType === 'dv') handleChange('dvFileName', '')
       if (fileType === 'job') handleChange('jobPdfFileName', '')
 
-      alert('ลบไฟล์สำเร็จ')
+      showSuccess('ลบไฟล์สำเร็จ')
       await loadData() // Reload data
     } catch (error: any) {
-      alert('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message))
+      showError('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message))
     } finally {
       setUploadingFile(null)
     }
@@ -240,10 +257,10 @@ export default function EditJobOrderPage() {
     setLoading(true)
     try {
       await api.delete(`/job-orders/${jobOrderId}`)
-      alert('ลบ Job Order สำเร็จ')
+      showSuccess('ลบ Job Order สำเร็จ')
       router.push('/job-orders')
     } catch (error: any) {
-      alert('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message))
+      showError('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message))
     } finally {
       setLoading(false)
     }
@@ -254,7 +271,7 @@ export default function EditJobOrderPage() {
 
   const handleViewFile = async (fileName: string) => {
     if (!fileName) {
-      alert('ไม่มีไฟล์')
+      showInfo('ไม่มีไฟล์')
       return
     }
     
@@ -284,7 +301,7 @@ export default function EditJobOrderPage() {
         }
       } catch (error) {
         console.error('Error getting file URL:', error)
-        alert('เกิดข้อผิดพลาดในการเปิดไฟล์')
+        showError('เกิดข้อผิดพลาดในการเปิดไฟล์')
         return
       }
     }
@@ -294,7 +311,7 @@ export default function EditJobOrderPage() {
       setPreviewUrl(fileUrl)
       setPreviewFileName(getDisplayFileName(fileName))
     } else {
-      alert('ไม่สามารถเปิดไฟล์ได้')
+      showError('ไม่สามารถเปิดไฟล์ได้')
     }
   }
 
@@ -349,6 +366,29 @@ export default function EditJobOrderPage() {
           ย้อนกลับ
         </Link>
       </div>
+
+      {/* Linked Quotation Alert */}
+      {linkedQuotation && (
+        <div className="mb-6 rounded-lg border-l-4 border-primary bg-primary bg-opacity-10 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-black dark:text-white">
+                Job Order นี้เชื่อมโยงกับใบเสนอราคา
+              </p>
+              <p className="mt-1 text-sm text-body">
+                เลขที่: {linkedQuotation.quotationNumber} | ลูกค้า: {linkedQuotation.customerName}
+              </p>
+            </div>
+            <Link
+              href={`/quotations/${linkedQuotation.id}/edit`}
+              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-white hover:bg-opacity-90"
+            >
+              <FileText className="h-4 w-4" />
+              ดูใบเสนอราคา
+            </Link>
+          </div>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit}>
         {/* ข้อมูลพื้นฐาน */}
