@@ -34,6 +34,10 @@ async function bootstrap() {
       callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+    exposedHeaders: ['Content-Range', 'X-Content-Range'],
+    maxAge: 3600, // Cache preflight request for 1 hour
   });
   
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
