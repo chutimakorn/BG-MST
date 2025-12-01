@@ -22,7 +22,12 @@ async function bootstrap() {
       }
       
       // อนุญาต Vercel preview/production URLs
-      if (origin.endsWith('.vercel.app')) {
+      if (origin.includes('.vercel.app')) {
+        return callback(null, true);
+      }
+      
+      // อนุญาต Railway URLs
+      if (origin.includes('.railway.app') || origin.includes('.up.railway.app')) {
         return callback(null, true);
       }
       
