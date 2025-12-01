@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { FileText, Upload, Save, X, AlertCircle } from 'lucide-react'
 import { showSuccess } from '@/lib/toast-helper'
+import { apiFetch } from '@/lib/api-config'
 
 export default function ImportPdfPage() {
   const router = useRouter()
@@ -39,12 +40,8 @@ export default function ImportPdfPage() {
       const formData = new FormData()
       formData.append('file', pdfFile)
 
-      const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:3001/import/pdf', {
+      const response = await apiFetch('/import/pdf', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
         body: formData
       })
 
@@ -132,12 +129,8 @@ export default function ImportPdfPage() {
         formDataToSend.append('file', file)
       }
 
-      const response = await fetch('http://localhost:3001/import/pdf/save', {
+      const response = await apiFetch('/import/pdf/save', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          // Don't set Content-Type, let browser set it with boundary for FormData
-        },
         body: formDataToSend
       })
 

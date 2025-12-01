@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import api from '@/lib/api'
 import { Plus, Edit, Trash2, Database } from 'lucide-react'
 import { showSuccess, showError } from '@/lib/toast-helper'
+import { apiFetch } from '@/lib/api-config'
 
 const TYPE_LABELS: { [key: string]: string } = {
   'cars': 'รุ่นรถ',
@@ -105,10 +106,9 @@ export default function MasterDataTypePage() {
         return
       }
       
-      const response = await fetch('http://localhost:3001/master-data/initialize', {
+      const response = await apiFetch('/master-data/initialize', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       })

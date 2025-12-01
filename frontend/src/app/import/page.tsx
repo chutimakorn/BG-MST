@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Upload, FileSpreadsheet, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import { showSuccess } from '@/lib/toast-helper'
+import { apiFetch } from '@/lib/api-config'
 
 interface Record {
   rowNumber: number
@@ -130,10 +131,8 @@ export default function ImportPage() {
       const formData = new FormData()
       formData.append('file', selectedFile)
 
-      const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:3001/import/sheets', {
+      const response = await apiFetch('/import/sheets', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
         body: formData
       })
 
@@ -160,10 +159,8 @@ export default function ImportPage() {
       const formData = new FormData()
       formData.append('file', file)
 
-      const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:3001/import/preview?sheetName=${encodeURIComponent(selectedSheet)}`, {
+      const response = await apiFetch(`/import/preview?sheetName=${encodeURIComponent(selectedSheet)}`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
         body: formData
       })
 
@@ -278,11 +275,9 @@ export default function ImportPage() {
     setResult(null)
 
     try {
-      const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:3001/import/import-selected', {
+      const response = await apiFetch('/import/import-selected', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
