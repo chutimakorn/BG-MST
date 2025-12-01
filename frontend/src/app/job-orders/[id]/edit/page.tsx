@@ -178,20 +178,13 @@ export default function EditJobOrderPage() {
       const formData = new FormData()
       formData.append('file', file)
 
-      const token = localStorage.getItem('token')
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/job-orders/${jobOrderId}/upload/${fileType}`, {
-        method: 'POST',
+      const response = await api.post(`/job-orders/${jobOrderId}/upload/${fileType}`, formData, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
         },
-        body: formData,
       })
 
-      if (!response.ok) {
-        throw new Error('ไม่สามารถอัพโหลดไฟล์ได้')
-      }
-
-      const result = await response.json()
+      const result = response.data
       
       // Update form data with new file name
       if (fileType === 'po') handleChange('poFileName', result.fileName)

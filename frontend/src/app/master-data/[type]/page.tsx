@@ -134,14 +134,16 @@ export default function MasterDataTypePage() {
         <h2 className="text-title-md2 font-semibold text-black dark:text-white">
           {TYPE_LABELS[type] || 'Master Data'}
         </h2>
-        <button
-          onClick={handleInitialize}
-          disabled={loading}
-          className="inline-flex items-center justify-center gap-2.5 rounded-md border border-primary px-6 py-3 text-center font-medium text-primary hover:bg-opacity-90 disabled:opacity-50"
-        >
-          <Database className="h-5 w-5" />
-          เริ่มต้นข้อมูล
-        </button>
+        {data.length === 0 && !loading && (
+          <button
+            onClick={handleInitialize}
+            disabled={loading}
+            className="inline-flex items-center justify-center gap-2.5 rounded-md border border-primary px-6 py-3 text-center font-medium text-primary hover:bg-opacity-90 disabled:opacity-50"
+          >
+            <Database className="h-5 w-5" />
+            เริ่มต้นข้อมูล
+          </button>
+        )}
       </div>
 
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">

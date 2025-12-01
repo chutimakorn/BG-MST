@@ -82,6 +82,7 @@ export class JobOrdersController {
     if (fileType === 'po') updateData.poFileName = fileName;
     if (fileType === 'iv') updateData.ivFileName = fileName;
     if (fileType === 'it') updateData.itFileName = fileName;
+    if (fileType === 'dv') updateData.dvFileName = fileName;
 
     await this.jobOrdersService.update(id, updateData);
 
