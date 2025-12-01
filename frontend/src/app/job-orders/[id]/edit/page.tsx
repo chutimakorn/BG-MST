@@ -127,6 +127,7 @@ export default function EditJobOrderPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('🔵 handleSubmit called')
     setLoading(true)
 
     try {
@@ -153,12 +154,16 @@ export default function EditJobOrderPage() {
         itFileName: formData.itFileName,
         itDate: formData.itDate || null,
         itAmount: formData.itAmount ? parseFloat(formData.itAmount as any) : null,
+        dvFileName: formData.dvFileName,
       }
 
-      await api.put(`/job-orders/${jobOrderId}`, submitData)
+      console.log('📤 Submitting data:', submitData)
+      const response = await api.put(`/job-orders/${jobOrderId}`, submitData)
+      console.log('✅ Response:', response.data)
       showSuccess('แก้ไข Job Order สำเร็จ')
       router.push('/job-orders')
     } catch (error: any) {
+      console.error('❌ Error:', error)
       showError('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message))
     } finally {
       setLoading(false)

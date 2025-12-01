@@ -179,35 +179,53 @@ export class JobOrdersService {
     // DV Section
     if (data.dvFileName !== undefined) jobOrder.dvFileName = data.dvFileName;
 
-    // Update relations if provided
-    if (data.carId) {
-      const car = await this.carRepository.findOne({ where: { id: data.carId } });
+    // Update relations if provided (support both 'car' and 'carId' formats)
+    const carId = data.car || data.carId;
+    if (carId) {
+      const car = await this.carRepository.findOne({ where: { id: carId } });
       if (car) jobOrder.car = car;
+    } else if (data.car === null || data.carId === null) {
+      jobOrder.car = null;
     }
 
-    if (data.bodyColorId) {
-      const bodyColor = await this.bodyColorRepository.findOne({ where: { id: data.bodyColorId } });
+    const bodyColorId = data.bodyColor || data.bodyColorId;
+    if (bodyColorId) {
+      const bodyColor = await this.bodyColorRepository.findOne({ where: { id: bodyColorId } });
       if (bodyColor) jobOrder.bodyColor = bodyColor;
+    } else if (data.bodyColor === null || data.bodyColorId === null) {
+      jobOrder.bodyColor = null;
     }
 
-    if (data.seatColorId) {
-      const seatColor = await this.seatColorRepository.findOne({ where: { id: data.seatColorId } });
+    const seatColorId = data.seatColor || data.seatColorId;
+    if (seatColorId) {
+      const seatColor = await this.seatColorRepository.findOne({ where: { id: seatColorId } });
       if (seatColor) jobOrder.seatColor = seatColor;
+    } else if (data.seatColor === null || data.seatColorId === null) {
+      jobOrder.seatColor = null;
     }
 
-    if (data.canopyColorId) {
-      const canopyColor = await this.canopyColorRepository.findOne({ where: { id: data.canopyColorId } });
+    const canopyColorId = data.canopyColor || data.canopyColorId;
+    if (canopyColorId) {
+      const canopyColor = await this.canopyColorRepository.findOne({ where: { id: canopyColorId } });
       if (canopyColor) jobOrder.canopyColor = canopyColor;
+    } else if (data.canopyColor === null || data.canopyColorId === null) {
+      jobOrder.canopyColor = null;
     }
 
-    if (data.statusJobDocumentId) {
-      const statusJobDocument = await this.statusJobDocumentRepository.findOne({ where: { id: data.statusJobDocumentId } });
+    const statusJobDocumentId = data.statusJobDocument || data.statusJobDocumentId;
+    if (statusJobDocumentId) {
+      const statusJobDocument = await this.statusJobDocumentRepository.findOne({ where: { id: statusJobDocumentId } });
       if (statusJobDocument) jobOrder.statusJobDocument = statusJobDocument;
+    } else if (data.statusJobDocument === null || data.statusJobDocumentId === null) {
+      jobOrder.statusJobDocument = null;
     }
 
-    if (data.statusJobId) {
-      const statusJob = await this.statusJobRepository.findOne({ where: { id: data.statusJobId } });
+    const statusJobId = data.statusJob || data.statusJobId;
+    if (statusJobId) {
+      const statusJob = await this.statusJobRepository.findOne({ where: { id: statusJobId } });
       if (statusJob) jobOrder.statusJob = statusJob;
+    } else if (data.statusJob === null || data.statusJobId === null) {
+      jobOrder.statusJob = null;
     }
 
     return this.jobOrderRepository.save(jobOrder);
