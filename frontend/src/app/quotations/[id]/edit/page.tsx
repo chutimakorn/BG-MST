@@ -343,6 +343,14 @@ export default function EditQuotationPage() {
                     {masterData.cars?.map((c: any) => (<option key={c.id} value={c.id}>{c.name}</option>))}
                   </select>
                 </div>
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">สถานะ <span className="text-meta-1">*</span></label>
+                  <select required value={formData.status} onChange={(e) => handleChange('status', e.target.value)} className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white">
+                    <option value="processing">กำลังดำเนินการ</option>
+                    <option value="close">ปิดการขาย</option>
+                    <option value="cancel">ยกเลิก</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -396,12 +404,79 @@ export default function EditQuotationPage() {
               </div>
             </div>
 
+            {/* ข้อมูลการติดต่อ */}
+            <div className="mb-6">
+              <h4 className="mb-4 text-lg font-semibold text-black dark:text-white">ข้อมูลการติดต่อ</h4>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">ชื่อผู้ติดต่อ</label>
+                  <input type="text" value={formData.contactName} onChange={(e) => handleChange('contactName', e.target.value)} className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white" />
+                </div>
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">เบอร์ติดต่อ</label>
+                  <input type="text" value={formData.contactPhone} onChange={(e) => handleChange('contactPhone', e.target.value)} className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white" />
+                </div>
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">E-Mail</label>
+                  <input type="email" value={formData.contactEmail} onChange={(e) => handleChange('contactEmail', e.target.value)} className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white" />
+                </div>
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">สถานะสต็อก</label>
+                  <select value={formData.stockStatus} onChange={(e) => handleChange('stockStatus', e.target.value)} className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white">
+                    <option value="รอ 7 - 30">รอ 7 - 30</option>
+                    <option value="พร้อมส่ง">พร้อมส่ง</option>
+                    <option value="สั่งผลิต">สั่งผลิต</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* เงื่อนไขการชำระ */}
+            <div className="mb-6">
+              <label className="mb-2.5 block font-medium text-black dark:text-white">เงื่อนไขการชำระ</label>
+              <textarea rows={3} value={formData.paymentTerms} onChange={(e) => handleChange('paymentTerms', e.target.value)} className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white" />
+            </div>
+
+            {/* ข้อมูลเพิ่มเติม */}
+            <div className="mb-6">
+              <h4 className="mb-4 text-lg font-semibold text-black dark:text-white">ข้อมูลเพิ่มเติม</h4>
+              <div className="grid grid-cols-1 gap-6">
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">แจ้ง/นัดหมายลูกค้าก่อนส่งมอบ</label>
+                  <textarea rows={2} value={formData.customerNotification} onChange={(e) => handleChange('customerNotification', e.target.value)} className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white" />
+                </div>
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">ผลตรวจเช็คก่อนส่งมอบ</label>
+                  <textarea rows={2} value={formData.preDeliveryInspection} onChange={(e) => handleChange('preDeliveryInspection', e.target.value)} className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white" />
+                </div>
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">Serial / Code</label>
+                  <input type="text" value={formData.serialCode} onChange={(e) => handleChange('serialCode', e.target.value)} className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white" />
+                </div>
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">หมายเหตุ / สถานะหลังส่งมอบ</label>
+                  <textarea rows={2} value={formData.postDeliveryNote} onChange={(e) => handleChange('postDeliveryNote', e.target.value)} className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white" />
+                </div>
+              </div>
+            </div>
+
             <div className="mb-6">
               <div className="rounded-lg border-2 border-primary bg-primary bg-opacity-10 p-6">
                 <p className="text-xl font-bold text-black dark:text-white">
                   ราคาขายรวมค่าขนส่ง: <span className="text-primary">฿{totals.grandTotal.toLocaleString()}</span>
                 </p>
               </div>
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+              >
+                <Save className="h-5 w-5" />
+                {loading ? 'กำลังบันทึก...' : 'บันทึกการแก้ไข'}
+              </button>
             </div>
           </div>
         </form>

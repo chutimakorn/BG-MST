@@ -31,8 +31,11 @@ export default function QuotationsPage() {
       return
     }
     loadSaleMembers()
+  }, [router])
+
+  useEffect(() => {
     loadQuotations()
-  }, [router, page, sortBy, sortOrder])
+  }, [page, sortBy, sortOrder, search, filterSaleMember, filterStatus, filterStartDate, filterEndDate])
 
   const loadSaleMembers = async () => {
     try {
@@ -88,11 +91,6 @@ export default function QuotationsPage() {
     }
   }
 
-  const handleSearch = () => {
-    setPage(1)
-    loadQuotations()
-  }
-
   const SortIcon = ({ field }: { field: string }) => {
     if (sortBy === field) {
       return sortOrder === 'ASC' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
@@ -126,16 +124,13 @@ export default function QuotationsPage() {
                   type="text"
                   placeholder="ค้นหาเลขที่ใบเสนอราคา หรือชื่อลูกค้า..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="w-full rounded-lg border border-stroke bg-transparent py-3 pl-4 pr-12 text-black outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  onChange={(e) => {
+                    setSearch(e.target.value)
+                    setPage(1)
+                  }}
+                  className="w-full rounded-lg border border-stroke bg-transparent py-3 pl-4 pr-10 text-black outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                 />
-                <button
-                  onClick={handleSearch}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 rounded-md bg-primary p-2.5 text-white hover:bg-opacity-90"
-                >
-                  <Search className="h-5 w-5" />
-                </button>
+                <Search className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-body" />
               </div>
               <Link
                 href="/quotations/new"
@@ -154,7 +149,10 @@ export default function QuotationsPage() {
                 </label>
                 <select
                   value={filterSaleMember}
-                  onChange={(e) => setFilterSaleMember(e.target.value)}
+                  onChange={(e) => {
+                    setFilterSaleMember(e.target.value)
+                    setPage(1)
+                  }}
                   className="w-full rounded-lg border border-stroke bg-transparent px-4 py-3 text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
                 >
                   <option value="">ทั้งหมด</option>
@@ -172,7 +170,10 @@ export default function QuotationsPage() {
                 </label>
                 <select
                   value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
+                  onChange={(e) => {
+                    setFilterStatus(e.target.value)
+                    setPage(1)
+                  }}
                   className="w-full rounded-lg border border-stroke bg-transparent px-4 py-3 text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
                 >
                   <option value="">ทั้งหมด</option>
@@ -189,7 +190,10 @@ export default function QuotationsPage() {
                 <input
                   type="date"
                   value={filterStartDate}
-                  onChange={(e) => setFilterStartDate(e.target.value)}
+                  onChange={(e) => {
+                    setFilterStartDate(e.target.value)
+                    setPage(1)
+                  }}
                   className="w-full rounded-lg border border-stroke bg-transparent px-4 py-3 text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
                 />
               </div>
@@ -201,19 +205,16 @@ export default function QuotationsPage() {
                 <input
                   type="date"
                   value={filterEndDate}
-                  onChange={(e) => setFilterEndDate(e.target.value)}
+                  onChange={(e) => {
+                    setFilterEndDate(e.target.value)
+                    setPage(1)
+                  }}
                   className="w-full rounded-lg border border-stroke bg-transparent px-4 py-3 text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
                 />
               </div>
             </div>
 
             <div className="mt-4 flex gap-2">
-              <button
-                onClick={handleSearch}
-                className="rounded-md bg-primary px-6 py-2 font-medium text-white hover:bg-opacity-90"
-              >
-                ค้นหา
-              </button>
               <button
                 onClick={handleClearFilters}
                 className="rounded-md border border-stroke px-6 py-2 font-medium text-black hover:bg-gray-2 dark:border-strokedark dark:text-white dark:hover:bg-meta-4"

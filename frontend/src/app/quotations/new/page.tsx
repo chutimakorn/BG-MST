@@ -266,6 +266,22 @@ export default function NewQuotationPage() {
                     ))}
                   </select>
                 </div>
+
+                <div>
+                  <label className="mb-2.5 block font-medium text-black dark:text-white">
+                    สถานะ <span className="text-meta-1">*</span>
+                  </label>
+                  <select
+                    required
+                    value={formData.status}
+                    onChange={(e) => handleChange('status', e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                  >
+                    <option value="processing">กำลังดำเนินการ</option>
+                    <option value="close">ปิดการขาย</option>
+                    <option value="cancel">ยกเลิก</option>
+                  </select>
+                </div>
               </div>
             </div>
 

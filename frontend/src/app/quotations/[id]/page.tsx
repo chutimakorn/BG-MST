@@ -97,6 +97,20 @@ export default function QuotationDetailPage() {
             <InfoRow label="ชื่อลูกค้า" value={quotation.customerName} />
             <InfoRow label="รหัสลูกค้า" value={quotation.customerCode} />
             <InfoRow 
+              label="สถานะ" 
+              value={
+                <span className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${
+                  quotation.status === 'close' ? 'bg-success text-success' :
+                  quotation.status === 'cancel' ? 'bg-danger text-danger' :
+                  'bg-warning text-warning'
+                }`}>
+                  {quotation.status === 'close' ? 'ปิดการขาย' :
+                   quotation.status === 'cancel' ? 'ยกเลิก' :
+                   'กำลังดำเนินการ'}
+                </span>
+              } 
+            />
+            <InfoRow 
               label="Job Order" 
               value={
                 quotation.jobOrder ? (

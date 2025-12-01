@@ -34,6 +34,9 @@ export class QuotationsService {
     if (filters?.saleMemberId) {
       query.andWhere('q.saleMemberId = :saleMemberId', { saleMemberId: filters.saleMemberId });
     }
+    if (filters?.status) {
+      query.andWhere('q.status = :status', { status: filters.status });
+    }
     if (filters?.startDate) {
       query.andWhere('q.submissionDate >= :startDate', { startDate: filters.startDate });
     }
